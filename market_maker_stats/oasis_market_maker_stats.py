@@ -131,10 +131,10 @@ class OasisMarketMakerStats:
         closest_buy_prices = list(map(lambda state: state.closest_buy_price(), states))
         furthest_buy_prices = list(map(lambda state: state.furthest_buy_price(), states))
 
-        plt.plot_date(timestamps, furthest_sell_prices, 'b:')
+        # plt.plot_date(timestamps, furthest_sell_prices, 'b:')
+        # plt.plot_date(timestamps, furthest_buy_prices, 'g:')
         plt.plot_date(timestamps, closest_sell_prices, 'b--')
         plt.plot_date(timestamps, closest_buy_prices, 'g--')
-        plt.plot_date(timestamps, furthest_buy_prices, 'g:')
         plt.show()
 
     def apply_make(self, order_book: List[Order], log_make: LogMake) -> List[Order]:
