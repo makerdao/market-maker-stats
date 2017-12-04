@@ -18,11 +18,14 @@
 import argparse
 import datetime
 import sys
+import time
 from functools import reduce
 from typing import List, Optional
 
 import matplotlib.dates as md
 import matplotlib.pyplot as plt
+import pytz
+import requests
 from matplotlib.dates import date2num
 from web3 import Web3, HTTPProvider
 
@@ -32,9 +35,10 @@ from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
 
 
 class State:
-    def __init__(self, timestamp: int, order_book: List[Order], sai_address: Address, weth_address: Address):
+    def __init__(self, timestamp: int, order_book: List[Order], market_price: Wad, sai_address: Address, weth_address: Address):
         self.timestamp = timestamp
         self.order_book = order_book
+        self.market_price = market_price
         self.sai_address = sai_address
         self.weth_address = weth_address
 
@@ -111,30 +115,92 @@ class OasisMarketMakerStats:
 
             return states + [State(timestamp=timestamp,
                                    order_book=order_book,
+                                   market_price=None,
                                    sai_address=self.sai_address,
                                    weth_address=self.weth_address)]
 
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
         states = reduce(reduce_func, event_timestamps, [])
+        states = states + self.get_gdax_states(event_timestamps)
+        states = sorted(states, key=lambda state: state.timestamp)
+
+        last_market_price = None
+        last_order_book = []
+        for i in range(0, len(states)):
+            state = states[i]
+
+            if state.order_book is None:
+                state.order_book = last_order_book
+            if state.market_price is None:
+                state.market_price = last_market_price
+
+            last_order_book = state.order_book
+            last_market_price = state.market_price
+
         self.draw(states)
+
+    def get_gdax_states(self, timestamps: List[int]):
+        first_timestamp = timestamps[0]
+        last_timestamp = timestamps[-1]
+
+        states = []
+        timestamp = first_timestamp
+        while timestamp <= last_timestamp:
+            timestamp_range_start = timestamp
+            timestamp_range_end = int((datetime.datetime.fromtimestamp(timestamp) + datetime.timedelta(hours=3)).timestamp())
+            states = states + list(filter(lambda state: state.timestamp >= first_timestamp and state.timestamp <= last_timestamp,
+                                          self.get_gdax_partial(timestamp_range_start, timestamp_range_end)))
+            timestamp = timestamp_range_end
+
+        return states
+
+    def get_gdax_partial(self, timestamp_range_start: int, timestamp_range_end: int):
+        start = datetime.datetime.fromtimestamp(timestamp_range_start)
+        end = datetime.datetime.fromtimestamp(timestamp_range_end)
+
+        url = f"https://api.gdax.com/products/ETH-USD/candles?" \
+              f"start={self.iso_8601(start)}&" \
+              f"end={self.iso_8601(end)}&" \
+              f"granularity=60"
+
+        print(f"Downloading: {url}")
+
+        # data is: [[ time, low, high, open, close, volume ], [...]]
+        data = requests.get(url).json()
+
+        if 'message' in data:
+            print("GDAX API rate limiting, slowing down...")
+            time.sleep(2)
+            return self.get_gdax_partial(timestamp_range_start, timestamp_range_end)
+        else:
+            return list(map(lambda array: State(timestamp=array[0],
+                                                order_book=None,
+                                                market_price=array[3],    # array[3] is 'open'
+                                                sai_address=self.sai_address,
+                                                weth_address=self.weth_address), data))
+
+    @staticmethod
+    def iso_8601(tm) -> str:
+        return tm.isoformat().replace('+00:00', 'Z')
 
     def draw(self, states: List[State]):
         plt.subplots_adjust(bottom=0.2)
         plt.xticks( rotation=25 )
         ax=plt.gca()
-        xfmt = md.DateFormatter('%Y-%m-%d %H:%M:%S')
-        ax.xaxis.set_major_formatter(xfmt)
+        ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
         timestamps = list(map(lambda state: date2num(datetime.datetime.fromtimestamp(state.timestamp)), states))
         closest_sell_prices = list(map(lambda state: state.closest_sell_price(), states))
         furthest_sell_prices = list(map(lambda state: state.furthest_sell_price(), states))
         closest_buy_prices = list(map(lambda state: state.closest_buy_price(), states))
         furthest_buy_prices = list(map(lambda state: state.furthest_buy_price(), states))
+        market_prices = list(map(lambda state: state.market_price, states))
 
         # plt.plot_date(timestamps, furthest_sell_prices, 'b:')
         # plt.plot_date(timestamps, furthest_buy_prices, 'g:')
         plt.plot_date(timestamps, closest_sell_prices, 'b--')
         plt.plot_date(timestamps, closest_buy_prices, 'g--')
+        plt.plot_date(timestamps, market_prices, 'r-')
         plt.show()
 
     def apply_make(self, order_book: List[Order], log_make: LogMake) -> List[Order]:
