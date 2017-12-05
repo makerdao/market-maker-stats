@@ -24,7 +24,6 @@ from typing import List, Optional
 
 import matplotlib.dates as md
 import matplotlib.pyplot as plt
-import pytz
 import requests
 from matplotlib.dates import date2num
 from web3 import Web3, HTTPProvider
@@ -120,10 +119,15 @@ class OasisMarketMakerStats:
                                    weth_address=self.weth_address)]
 
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
-        states = reduce(reduce_func, event_timestamps, [])
-        states = states + self.get_gdax_states(event_timestamps)
-        states = sorted(states, key=lambda state: state.timestamp)
+        oasis_states = reduce(reduce_func, event_timestamps, [])
+        gdax_states = self.get_gdax_states(event_timestamps)
 
+        states = sorted(oasis_states + gdax_states, key=lambda state: state.timestamp)
+        states = self.consolidate_states(states)
+
+        self.draw(states)
+
+    def consolidate_states(self, states):
         last_market_price = None
         last_order_book = []
         for i in range(0, len(states)):
@@ -137,11 +141,11 @@ class OasisMarketMakerStats:
             last_order_book = state.order_book
             last_market_price = state.market_price
 
-        self.draw(states)
+        return states
 
     def get_gdax_states(self, timestamps: List[int]):
         first_timestamp = timestamps[0]
-        last_timestamp = timestamps[-1]
+        last_timestamp = max(timestamps[-1], int(time.time()))
 
         states = []
         timestamp = first_timestamp
@@ -185,7 +189,7 @@ class OasisMarketMakerStats:
 
     def draw(self, states: List[State]):
         plt.subplots_adjust(bottom=0.2)
-        plt.xticks( rotation=25 )
+        plt.xticks(rotation=25)
         ax=plt.gca()
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
