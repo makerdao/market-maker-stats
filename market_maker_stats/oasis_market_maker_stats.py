@@ -72,7 +72,7 @@ class OasisMarketMakerStats:
     """Tool to analyze the OasisDEX Market Maker keeper performance."""
 
     def __init__(self, args: list, **kwargs):
-        parser = argparse.ArgumentParser(prog='bite-keeper')
+        parser = argparse.ArgumentParser(prog='oasis-market-maker-stats')
         parser.add_argument("--rpc-host", help="JSON-RPC host (default: `localhost')", default="localhost", type=str)
         parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
         parser.add_argument("--oasis-address", help="Ethereum address of the OasisDEX contract", required=True, type=str)
