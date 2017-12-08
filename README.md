@@ -9,6 +9,10 @@ A set of tools for collecting data from the `market-maker-keeper` keepers.
 Draws a chart with the GDAX price and closest `oasis-market-maker-keeper` bid and asks.
 This way we can clearly spot if we are not creating dangerous arbitrage opportunities:
 
+Example result:
+
+![](https://s18.postimg.org/vkj0jgag9/image.png)
+
 ### Usage
 
 ```
