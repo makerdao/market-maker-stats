@@ -24,6 +24,7 @@ from typing import List, Optional
 
 import matplotlib.dates as md
 import matplotlib.pyplot as plt
+import pytz
 import requests
 from matplotlib.dates import date2num
 from web3 import Web3, HTTPProvider
@@ -159,8 +160,8 @@ class OasisMarketMakerStats:
         return states
 
     def get_gdax_partial(self, timestamp_range_start: int, timestamp_range_end: int):
-        start = datetime.datetime.fromtimestamp(timestamp_range_start)
-        end = datetime.datetime.fromtimestamp(timestamp_range_end)
+        start = datetime.datetime.fromtimestamp(timestamp_range_start, pytz.UTC)
+        end = datetime.datetime.fromtimestamp(timestamp_range_end, pytz.UTC)
 
         url = f"https://api.gdax.com/products/ETH-USD/candles?" \
               f"start={self.iso_8601(start)}&" \
