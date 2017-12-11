@@ -203,8 +203,8 @@ class OasisMarketMakerStats:
 
         # plt.plot_date(timestamps, furthest_sell_prices, 'b:')
         # plt.plot_date(timestamps, furthest_buy_prices, 'g:')
-        plt.plot_date(timestamps, closest_sell_prices, 'b--')
-        plt.plot_date(timestamps, closest_buy_prices, 'g--')
+        plt.plot_date(timestamps, closest_sell_prices, 'b-')
+        plt.plot_date(timestamps, closest_buy_prices, 'g-')
         plt.plot_date(timestamps, market_prices, 'r-')
         plt.show()
 
