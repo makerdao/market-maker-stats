@@ -209,7 +209,7 @@ class OasisMarketMakerStats:
         plt.plot_date(timestamps, closest_buy_prices, 'g-')
         plt.plot_date(timestamps, market_prices, 'r-')
         if self.arguments.output:
-            plt.savefig(fname=self.arguments.output, dpi=300)
+            plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)
         else:
             plt.show()
 
