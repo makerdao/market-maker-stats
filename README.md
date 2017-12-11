@@ -4,7 +4,7 @@ A set of tools for collecting data from the `market-maker-keeper` keepers.
 
 <https://chat.makerdao.com/channel/keeper>
 
-## oasis-market-maker-stats
+## oasis-market-maker-chart
 
 Draws a chart with the GDAX price and closest `oasis-market-maker-keeper` bid and asks.
 This way we can clearly spot if we are not creating dangerous arbitrage opportunities:
@@ -16,7 +16,7 @@ Example result:
 ### Usage
 
 ```
-usage: oasis-market-maker-stats [-h] [--rpc-host RPC_HOST]
+usage: oasis-market-maker-chart [-h] [--rpc-host RPC_HOST]
                                 [--rpc-port RPC_PORT] --oasis-address
                                 OASIS_ADDRESS --sai-address SAI_ADDRESS
                                 --weth-address WETH_ADDRESS
