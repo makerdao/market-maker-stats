@@ -81,6 +81,8 @@ class OasisMarketMakerStats:
         parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
+        parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
+                                                   " Will get displayed on-screen if empty", required=False, type=str)
         self.arguments = parser.parse_args(args)
 
         self.web3 = kwargs['web3'] if 'web3' in kwargs else Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}"))
@@ -89,7 +91,7 @@ class OasisMarketMakerStats:
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.otc = SimpleMarket(web3=self.web3, address=Address(self.arguments.oasis_address))
 
-    def lifecycle(self):
+    def main(self):
         past_make = self.otc.past_make(self.arguments.past_blocks)
         past_take = self.otc.past_take(self.arguments.past_blocks)
         past_kill = self.otc.past_kill(self.arguments.past_blocks)
@@ -206,7 +208,10 @@ class OasisMarketMakerStats:
         plt.plot_date(timestamps, closest_sell_prices, 'b-')
         plt.plot_date(timestamps, closest_buy_prices, 'g-')
         plt.plot_date(timestamps, market_prices, 'r-')
-        plt.show()
+        if self.arguments.output:
+            plt.savefig(fname=self.arguments.output, dpi=300)
+        else:
+            plt.show()
 
     def apply_make(self, order_book: List[Order], log_make: LogMake) -> List[Order]:
         return order_book + [Order(self.otc,
@@ -247,4 +252,4 @@ class OasisMarketMakerStats:
 
 
 if __name__ == '__main__':
-    OasisMarketMakerStats(sys.argv[1:]).lifecycle()
+    OasisMarketMakerStats(sys.argv[1:]).main()
