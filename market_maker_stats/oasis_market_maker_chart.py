@@ -69,6 +69,14 @@ class State:
         return list(map(lambda order: order.sell_to_buy_price, self.buy_orders()))
 
 
+class Trade:
+    def __init__(self, timestamp: int, price: Wad, is_buy: bool, is_sell: bool):
+        self.timestamp = timestamp
+        self.price = price
+        self.is_buy = is_buy
+        self.is_sell = is_sell
+
+
 class OasisMarketMakerStats:
     """Tool to analyze the OasisDEX Market Maker keeper performance."""
 
@@ -121,6 +129,18 @@ class OasisMarketMakerStats:
                                    sai_address=self.sai_address,
                                    weth_address=self.weth_address)]
 
+        def sell_trades() -> List[Trade]:
+            return list(map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, False, True),
+                            filter(lambda log_take: log_take.maker == self.market_maker_address and
+                                                    log_take.buy_token == self.sai_address and
+                                                    log_take.pay_token == self.weth_address, past_take)))
+
+        def buy_trades() -> List[Trade]:
+            return list(map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, True, False),
+                            filter(lambda log_take: log_take.maker == self.market_maker_address and
+                                                    log_take.buy_token == self.weth_address and
+                                                    log_take.pay_token == self.sai_address, past_take)))
+
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
         oasis_states = reduce(reduce_func, event_timestamps, [])
         gdax_states = self.get_gdax_states(event_timestamps)
@@ -128,7 +148,9 @@ class OasisMarketMakerStats:
         states = sorted(oasis_states + gdax_states, key=lambda state: state.timestamp)
         states = self.consolidate_states(states)
 
-        self.draw(states)
+        trades = sell_trades() + buy_trades()
+
+        self.draw(states, trades)
 
     def consolidate_states(self, states):
         last_market_price = None
@@ -190,13 +212,16 @@ class OasisMarketMakerStats:
     def iso_8601(tm) -> str:
         return tm.isoformat().replace('+00:00', 'Z')
 
-    def draw(self, states: List[State]):
+    def convert_timestamp(self, timestamp):
+        return date2num(datetime.datetime.fromtimestamp(timestamp))
+
+    def draw(self, states: List[State], trades: List[Trade]):
         plt.subplots_adjust(bottom=0.2)
         plt.xticks(rotation=25)
         ax=plt.gca()
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
-        timestamps = list(map(lambda state: date2num(datetime.datetime.fromtimestamp(state.timestamp)), states))
+        timestamps = list(map(self.convert_timestamp, map(lambda state: state.timestamp, states)))
         closest_sell_prices = list(map(lambda state: state.closest_sell_price(), states))
         furthest_sell_prices = list(map(lambda state: state.furthest_sell_price(), states))
         closest_buy_prices = list(map(lambda state: state.closest_buy_price(), states))
@@ -208,6 +233,14 @@ class OasisMarketMakerStats:
         plt.plot_date(timestamps, closest_sell_prices, 'b-')
         plt.plot_date(timestamps, closest_buy_prices, 'g-')
         plt.plot_date(timestamps, market_prices, 'r-')
+
+        sell_trades = list(filter(lambda trade: trade.is_sell, trades))
+        buy_trades = list(filter(lambda trade: trade.is_buy, trades))
+        plt.plot_date(list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, sell_trades))),
+                      list(map(lambda trade: trade.price, sell_trades)), 'b*')
+        plt.plot_date(list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, buy_trades))),
+                      list(map(lambda trade: trade.price, buy_trades)), 'g*')
+
         if self.arguments.output:
             plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)
         else:
