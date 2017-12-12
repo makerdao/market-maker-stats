@@ -130,16 +130,18 @@ class OasisMarketMakerStats:
                                    weth_address=self.weth_address)]
 
         def sell_trades() -> List[Trade]:
-            return list(map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, False, True),
-                            filter(lambda log_take: log_take.maker == self.market_maker_address and
-                                                    log_take.buy_token == self.sai_address and
-                                                    log_take.pay_token == self.weth_address, past_take)))
+            regular = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, False, True),
+                          filter(lambda log_take: log_take.maker == self.market_maker_address and log_take.buy_token == self.sai_address and log_take.pay_token == self.weth_address, past_take))
+            matched = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, False, True),
+                          filter(lambda log_take: log_take.taker == self.market_maker_address and log_take.buy_token == self.weth_address and log_take.pay_token == self.sai_address, past_take))
+            return list(regular) + list(matched)
 
         def buy_trades() -> List[Trade]:
-            return list(map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, True, False),
-                            filter(lambda log_take: log_take.maker == self.market_maker_address and
-                                                    log_take.buy_token == self.weth_address and
-                                                    log_take.pay_token == self.sai_address, past_take)))
+            regular = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, True, False),
+                          filter(lambda log_take: log_take.maker == self.market_maker_address and log_take.buy_token == self.weth_address and log_take.pay_token == self.sai_address, past_take))
+            matched = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, True, False),
+                          filter(lambda log_take: log_take.taker == self.market_maker_address and log_take.buy_token == self.sai_address and log_take.pay_token == self.weth_address, past_take))
+            return list(regular) + list(matched)
 
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
         oasis_states = reduce(reduce_func, event_timestamps, [])
