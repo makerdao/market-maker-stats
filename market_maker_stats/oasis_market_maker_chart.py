@@ -197,10 +197,15 @@ class OasisMarketMakerStats:
         print(f"Downloading: {url}")
 
         # data is: [[ time, low, high, open, close, volume ], [...]]
-        data = requests.get(url).json()
+        try:
+            data = requests.get(url).json()
+        except:
+            print("GDAX API network error, waiting 10 secs...")
+            time.sleep(10)
+            return self.get_gdax_partial(timestamp_range_start, timestamp_range_end)
 
         if 'message' in data:
-            print("GDAX API rate limiting, slowing down...")
+            print("GDAX API rate limiting, slowing down for 2 secs...")
             time.sleep(2)
             return self.get_gdax_partial(timestamp_range_start, timestamp_range_end)
         else:
