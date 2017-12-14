@@ -80,7 +80,7 @@ class Trade:
 class OasisMarketMakerStats:
     """Tool to analyze the OasisDEX Market Maker keeper performance."""
 
-    def __init__(self, args: list, **kwargs):
+    def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='oasis-market-maker-stats')
         parser.add_argument("--rpc-host", help="JSON-RPC host (default: `localhost')", default="localhost", type=str)
         parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
@@ -93,7 +93,7 @@ class OasisMarketMakerStats:
                                                    " Will get displayed on-screen if empty", required=False, type=str)
         self.arguments = parser.parse_args(args)
 
-        self.web3 = kwargs['web3'] if 'web3' in kwargs else Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}"))
+        self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}"))
         self.sai_address = Address(self.arguments.sai_address)
         self.weth_address = Address(self.arguments.weth_address)
         self.market_maker_address = Address(self.arguments.market_maker_address)
