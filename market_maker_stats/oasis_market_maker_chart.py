@@ -96,7 +96,7 @@ class OasisMarketMakerStats:
                                                    " Will get displayed on-screen if empty", required=False, type=str)
         self.arguments = parser.parse_args(args)
 
-        self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}"))
+        self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}", request_kwargs={'timeout': 120}))
         self.sai_address = Address(self.arguments.sai_address)
         self.weth_address = Address(self.arguments.weth_address)
         self.market_maker_address = Address(self.arguments.market_maker_address)
