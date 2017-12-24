@@ -103,22 +103,6 @@ class EtherDeltaMarketMakerStats:
     def get_event_timestamp(self, event):
         return self.infura.eth.getBlock(event.raw['blockHash']).timestamp
 
-    def consolidate_states(self, states):
-        last_market_price = None
-        last_order_book = []
-        for i in range(0, len(states)):
-            state = states[i]
-
-            if state.order_book is None:
-                state.order_book = last_order_book
-            if state.market_price is None:
-                state.market_price = last_market_price
-
-            last_order_book = state.order_book
-            last_market_price = state.market_price
-
-        return states
-
     def get_gdax_prices(self, start_timestamp: int, end_timestamp: int):
         prices = []
         timestamp = start_timestamp
