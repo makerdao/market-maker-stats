@@ -80,11 +80,11 @@ class Trade:
         self.is_sell = is_sell
 
 
-class OasisMarketMakerStats:
+class OasisMarketMakerChart:
     """Tool to analyze the OasisDEX Market Maker keeper performance."""
 
     def __init__(self, args: list):
-        parser = argparse.ArgumentParser(prog='oasis-market-maker-stats')
+        parser = argparse.ArgumentParser(prog='oasis-market-maker-chart')
         parser.add_argument("--rpc-host", help="JSON-RPC host (default: `localhost')", default="localhost", type=str)
         parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
         parser.add_argument("--oasis-address", help="Ethereum address of the OasisDEX contract", required=True, type=str)
@@ -295,4 +295,4 @@ class OasisMarketMakerStats:
 
 
 if __name__ == '__main__':
-    OasisMarketMakerStats(sys.argv[1:]).main()
+    OasisMarketMakerChart(sys.argv[1:]).main()

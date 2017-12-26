@@ -52,11 +52,11 @@ class Trade:
         self.is_sell = is_sell
 
 
-class EtherDeltaMarketMakerStats:
+class EtherDeltaMarketMakerChart:
     """Tool to analyze the EtherDelta Market Maker keeper performance."""
 
     def __init__(self, args: list):
-        parser = argparse.ArgumentParser(prog='oasis-market-maker-stats')
+        parser = argparse.ArgumentParser(prog='etherdelta-market-maker-chart')
         parser.add_argument("--rpc-host", help="JSON-RPC host (default: `localhost')", default="localhost", type=str)
         parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
         parser.add_argument("--etherdelta-address", help="Ethereum address of the EtherDelta contract", required=True, type=str)
@@ -173,4 +173,4 @@ class EtherDeltaMarketMakerStats:
 
 
 if __name__ == '__main__':
-    EtherDeltaMarketMakerStats(sys.argv[1:]).main()
+    EtherDeltaMarketMakerChart(sys.argv[1:]).main()
