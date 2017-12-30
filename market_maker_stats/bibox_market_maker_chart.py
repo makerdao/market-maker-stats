@@ -66,7 +66,7 @@ class BiboxMarketMakerChart:
                                   secret=self.arguments.bibox_secret)
 
     def main(self):
-        trades = self.bibox_api.get_trade_history('ETH_DAI', self.arguments.past_trades)
+        trades = self.bibox_api.get_trade_history('ETH_DAI', self.arguments.past_trades, retry=True)
 
         start_timestamp = min(trades, key=lambda trade: trade.timestamp).timestamp
         end_timestamp = int(time.time())
