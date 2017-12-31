@@ -26,6 +26,7 @@ import pytz
 import requests
 from web3 import Web3, HTTPProvider
 
+from market_maker_stats.util import amount_in_sai_to_size
 from pymaker import Address
 from pymaker.numeric import Wad
 from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
@@ -61,9 +62,10 @@ class State:
 
 
 class Trade:
-    def __init__(self, timestamp: int, price: Wad, is_buy: bool, is_sell: bool):
+    def __init__(self, timestamp: int, price: Wad, value_in_sai: Wad, is_buy: bool, is_sell: bool):
         self.timestamp = timestamp
         self.price = price
+        self.value_in_sai = value_in_sai
         self.is_buy = is_buy
         self.is_sell = is_sell
 
@@ -125,16 +127,16 @@ class OasisMarketMakerChart:
                                    weth_address=self.weth_address)]
 
         def sell_trades() -> List[Trade]:
-            regular = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, False, True),
+            regular = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, log_take.give_amount, False, True),
                           filter(lambda log_take: log_take.maker == self.market_maker_address and log_take.buy_token == self.sai_address and log_take.pay_token == self.weth_address, past_take))
-            matched = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, False, True),
+            matched = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, log_take.take_amount, False, True),
                           filter(lambda log_take: log_take.taker == self.market_maker_address and log_take.buy_token == self.weth_address and log_take.pay_token == self.sai_address, past_take))
             return list(regular) + list(matched)
 
         def buy_trades() -> List[Trade]:
-            regular = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, True, False),
+            regular = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, log_take.take_amount, True, False),
                           filter(lambda log_take: log_take.maker == self.market_maker_address and log_take.buy_token == self.weth_address and log_take.pay_token == self.sai_address, past_take))
-            matched = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, True, False),
+            matched = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, log_take.give_amount, True, False),
                           filter(lambda log_take: log_take.taker == self.market_maker_address and log_take.buy_token == self.sai_address and log_take.pay_token == self.weth_address, past_take))
             return list(regular) + list(matched)
 
@@ -219,6 +221,9 @@ class OasisMarketMakerChart:
 
         return date2num(datetime.datetime.fromtimestamp(timestamp))
 
+    def to_size(self, trade: Trade):
+        return amount_in_sai_to_size(trade.value_in_sai)
+
     def draw(self, states: List[State], trades: List[Trade]):
         import matplotlib.dates as md
         import matplotlib.pyplot as plt
@@ -238,11 +243,16 @@ class OasisMarketMakerChart:
         plt.plot_date(timestamps, market_prices, 'r-')
 
         sell_trades = list(filter(lambda trade: trade.is_sell, trades))
+        sell_x = list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, sell_trades)))
+        sell_y = list(map(lambda trade: trade.price, sell_trades))
+        sell_s = list(map(self.to_size, sell_trades))
+        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue')
+
         buy_trades = list(filter(lambda trade: trade.is_buy, trades))
-        plt.plot_date(list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, sell_trades))),
-                      list(map(lambda trade: trade.price, sell_trades)), 'b*')
-        plt.plot_date(list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, buy_trades))),
-                      list(map(lambda trade: trade.price, buy_trades)), 'g*')
+        buy_x = list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, buy_trades)))
+        buy_y = list(map(lambda trade: trade.price, buy_trades))
+        buy_s = list(map(self.to_size, buy_trades))
+        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green')
 
         if self.arguments.output:
             plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)

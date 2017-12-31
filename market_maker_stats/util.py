@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-SIZE_MIN = 1
+SIZE_MIN = 4
 SIZE_MAX = 40
 SIZE_PRICE_MAX = 2500
 
