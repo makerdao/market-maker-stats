@@ -165,13 +165,13 @@ class EtherDeltaMarketMakerChart:
         sell_x = list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, sell_trades)))
         sell_y = list(map(lambda trade: trade.price, sell_trades))
         sell_s = list(map(self.to_size, sell_trades))
-        plt.scatter(x=sell_x, y=sell_y, c='blue')
+        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue')
 
         buy_trades = list(filter(lambda trade: trade.is_buy, trades))
         buy_x = list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, buy_trades)))
         buy_y = list(map(lambda trade: trade.price, buy_trades))
         buy_s = list(map(self.to_size, buy_trades))
-        plt.scatter(x=buy_x, y=buy_y, c='green')
+        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green')
 
         if self.arguments.output:
             plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)
