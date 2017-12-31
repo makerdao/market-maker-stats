@@ -30,7 +30,7 @@ import pytz
 import requests
 from matplotlib.dates import date2num
 
-from pymaker.bibox import BiboxApi
+from pymaker.bibox import BiboxApi, Trade
 from pymaker.numeric import Wad
 
 
@@ -40,16 +40,12 @@ class Price:
         self.market_price = market_price
 
 
-class Trade:
-    def __init__(self, timestamp: int, price: Wad, is_buy: bool, is_sell: bool):
-        self.timestamp = timestamp
-        self.price = price
-        self.is_buy = is_buy
-        self.is_sell = is_sell
-
-
 class BiboxMarketMakerChart:
     """Tool to analyze the Bibox Market Maker keeper performance."""
+
+    SIZE_MIN = 1
+    SIZE_MAX = 40
+    SIZE_PRICE_MAX = 2500
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='bibox-market-maker-chart')
@@ -117,8 +113,14 @@ class BiboxMarketMakerChart:
     def iso_8601(tm) -> str:
         return tm.isoformat().replace('+00:00', 'Z')
 
-    def convert_timestamp(self, timestamp):
-        return date2num(datetime.datetime.fromtimestamp(timestamp))
+    def to_timestamp(self, price_or_trade):
+        return date2num(datetime.datetime.fromtimestamp(price_or_trade.timestamp))
+
+    def to_price(self, trade: Trade):
+        return trade.price
+
+    def to_size(self, trade: Trade):
+        return max(min(float(trade.money)/float(self.SIZE_PRICE_MAX)*self.SIZE_MAX, self.SIZE_MAX), self.SIZE_MIN)
 
     def draw(self, prices: List[Price], trades: List[Trade]):
         plt.subplots_adjust(bottom=0.2)
@@ -126,16 +128,21 @@ class BiboxMarketMakerChart:
         ax=plt.gca()
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
-        timestamps = list(map(self.convert_timestamp, map(lambda price: price.timestamp, prices)))
+        timestamps = list(map(self.to_timestamp, prices))
         market_prices = list(map(lambda price: price.market_price, prices))
         plt.plot_date(timestamps, market_prices, 'r-')
 
         sell_trades = list(filter(lambda trade: trade.is_sell, trades))
+        sell_x = list(map(self.to_timestamp, sell_trades))
+        sell_y = list(map(self.to_price, sell_trades))
+        sell_s = list(map(self.to_size, sell_trades))
+        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue')
+
         buy_trades = list(filter(lambda trade: not trade.is_sell, trades))
-        plt.plot_date(list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, sell_trades))),
-                      list(map(lambda trade: trade.price, sell_trades)), 'b*')
-        plt.plot_date(list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, buy_trades))),
-                      list(map(lambda trade: trade.price, buy_trades)), 'g*')
+        buy_x = list(map(self.to_timestamp, buy_trades))
+        buy_y = list(map(self.to_price, buy_trades))
+        buy_s = list(map(self.to_size, buy_trades))
+        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green')
 
         if self.arguments.output:
             plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)
