@@ -15,9 +15,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import matplotlib
-matplotlib.use('Agg')
-
 import argparse
 import datetime
 import sys
@@ -25,11 +22,8 @@ import time
 from functools import reduce
 from typing import List, Optional
 
-import matplotlib.dates as md
-import matplotlib.pyplot as plt
 import pytz
 import requests
-from matplotlib.dates import date2num
 from web3 import Web3, HTTPProvider
 
 from pymaker import Address
@@ -95,6 +89,10 @@ class OasisMarketMakerChart:
         self.weth_address = Address(self.arguments.weth_address)
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.otc = SimpleMarket(web3=self.web3, address=Address(self.arguments.oasis_address))
+
+        if self.arguments.output:
+            import matplotlib
+            matplotlib.use('Agg')
 
     def main(self):
         past_make = self.otc.past_make(self.arguments.past_blocks)
@@ -217,9 +215,14 @@ class OasisMarketMakerChart:
         return tm.isoformat().replace('+00:00', 'Z')
 
     def convert_timestamp(self, timestamp):
+        from matplotlib.dates import date2num
+
         return date2num(datetime.datetime.fromtimestamp(timestamp))
 
     def draw(self, states: List[State], trades: List[Trade]):
+        import matplotlib.dates as md
+        import matplotlib.pyplot as plt
+
         plt.subplots_adjust(bottom=0.2)
         plt.xticks(rotation=25)
         ax=plt.gca()

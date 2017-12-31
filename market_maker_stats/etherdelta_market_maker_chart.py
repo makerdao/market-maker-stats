@@ -15,27 +15,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import matplotlib
-matplotlib.use('Agg')
-
 import argparse
 import datetime
 import sys
 import time
-from functools import reduce
-from typing import List, Optional
+from typing import List
 
-import matplotlib.dates as md
-import matplotlib.pyplot as plt
 import pytz
 import requests
-from matplotlib.dates import date2num
 from web3 import Web3, HTTPProvider
 
 from pymaker import Address
 from pymaker.etherdelta import EtherDelta
 from pymaker.numeric import Wad
-from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
 
 
 class Price:
@@ -74,6 +66,10 @@ class EtherDeltaMarketMakerChart:
         self.eth_address = Address(self.arguments.eth_address)
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.etherdelta = EtherDelta(web3=self.web3, address=Address(self.arguments.etherdelta_address))
+
+        if self.arguments.output:
+            import matplotlib
+            matplotlib.use('Agg')
 
     def main(self):
         past_trade = self.etherdelta.past_trade(self.arguments.past_blocks)
@@ -147,9 +143,14 @@ class EtherDeltaMarketMakerChart:
         return tm.isoformat().replace('+00:00', 'Z')
 
     def convert_timestamp(self, timestamp):
+        from matplotlib.dates import date2num
+
         return date2num(datetime.datetime.fromtimestamp(timestamp))
 
     def draw(self, prices: List[Price], trades: List[Trade]):
+        import matplotlib.dates as md
+        import matplotlib.pyplot as plt
+
         plt.subplots_adjust(bottom=0.2)
         plt.xticks(rotation=25)
         ax=plt.gca()

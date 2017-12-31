@@ -15,20 +15,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import matplotlib
-matplotlib.use('Agg')
-
 import argparse
 import datetime
 import sys
 import time
 from typing import List
 
-import matplotlib.dates as md
-import matplotlib.pyplot as plt
 import pytz
 import requests
-from matplotlib.dates import date2num
 
 from pymaker.bibox import BiboxApi, Trade
 from pymaker.numeric import Wad
@@ -60,6 +54,10 @@ class BiboxMarketMakerChart:
         self.bibox_api = BiboxApi(api_server=self.arguments.bibox_api_server,
                                   api_key=self.arguments.bibox_api_key,
                                   secret=self.arguments.bibox_secret)
+
+        if self.arguments.output:
+            import matplotlib
+            matplotlib.use('Agg')
 
     def main(self):
         trades = self.bibox_api.get_trade_history('ETH_DAI', self.arguments.past_trades, retry=True)
@@ -114,6 +112,8 @@ class BiboxMarketMakerChart:
         return tm.isoformat().replace('+00:00', 'Z')
 
     def to_timestamp(self, price_or_trade):
+        from matplotlib.dates import date2num
+
         return date2num(datetime.datetime.fromtimestamp(price_or_trade.timestamp))
 
     def to_price(self, trade: Trade):
@@ -123,6 +123,9 @@ class BiboxMarketMakerChart:
         return max(min(float(trade.money)/float(self.SIZE_PRICE_MAX)*self.SIZE_MAX, self.SIZE_MAX), self.SIZE_MIN)
 
     def draw(self, prices: List[Price], trades: List[Trade]):
+        import matplotlib.dates as md
+        import matplotlib.pyplot as plt
+
         plt.subplots_adjust(bottom=0.2)
         plt.xticks(rotation=25)
         ax=plt.gca()
