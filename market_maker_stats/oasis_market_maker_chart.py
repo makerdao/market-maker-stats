@@ -48,14 +48,8 @@ class State:
     def closest_sell_price(self) -> Optional[Wad]:
         return min(self.sell_prices(), default=None)
 
-    def furthest_sell_price(self) -> Optional[Wad]:
-        return max(self.sell_prices(), default=None)
-
     def closest_buy_price(self) -> Optional[Wad]:
         return max(self.buy_prices(), default=None)
-
-    def furthest_buy_price(self) -> Optional[Wad]:
-        return min(self.buy_prices(), default=None)
 
     def sell_orders(self) -> List[Order]:
         return list(filter(lambda order: order.buy_token == self.sai_address and
@@ -233,13 +227,9 @@ class OasisMarketMakerChart:
 
         timestamps = list(map(self.convert_timestamp, map(lambda state: state.timestamp, states)))
         closest_sell_prices = list(map(lambda state: state.closest_sell_price(), states))
-        furthest_sell_prices = list(map(lambda state: state.furthest_sell_price(), states))
         closest_buy_prices = list(map(lambda state: state.closest_buy_price(), states))
-        furthest_buy_prices = list(map(lambda state: state.furthest_buy_price(), states))
         market_prices = list(map(lambda state: state.market_price, states))
 
-        # plt.plot_date(timestamps, furthest_sell_prices, 'b:')
-        # plt.plot_date(timestamps, furthest_buy_prices, 'g:')
         plt.plot_date(timestamps, closest_sell_prices, 'b-')
         plt.plot_date(timestamps, closest_buy_prices, 'g-')
         plt.plot_date(timestamps, market_prices, 'r-')
