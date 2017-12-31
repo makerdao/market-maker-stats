@@ -24,6 +24,7 @@ from typing import List
 import pytz
 import requests
 
+from market_maker_stats.util import amount_in_sai_to_size
 from pymaker.bibox import BiboxApi, Trade
 from pymaker.numeric import Wad
 
@@ -36,10 +37,6 @@ class Price:
 
 class BiboxMarketMakerChart:
     """Tool to analyze the Bibox Market Maker keeper performance."""
-
-    SIZE_MIN = 1
-    SIZE_MAX = 40
-    SIZE_PRICE_MAX = 2500
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='bibox-market-maker-chart')
@@ -120,7 +117,7 @@ class BiboxMarketMakerChart:
         return trade.price
 
     def to_size(self, trade: Trade):
-        return max(min(float(trade.money)/float(self.SIZE_PRICE_MAX)*self.SIZE_MAX, self.SIZE_MAX), self.SIZE_MIN)
+        return amount_in_sai_to_size(trade.money)
 
     def draw(self, prices: List[Price], trades: List[Trade]):
         import matplotlib.dates as md
