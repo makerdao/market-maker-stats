@@ -238,21 +238,21 @@ class OasisMarketMakerChart:
         closest_buy_prices = list(map(lambda state: state.closest_buy_price(), states))
         market_prices = list(map(lambda state: state.market_price, states))
 
-        plt.plot_date(timestamps, closest_sell_prices, 'b-')
-        plt.plot_date(timestamps, closest_buy_prices, 'g-')
-        plt.plot_date(timestamps, market_prices, 'r-')
+        plt.plot_date(timestamps, closest_sell_prices, 'b-', zorder=1)
+        plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=1)
+        plt.plot_date(timestamps, market_prices, 'r-', zorder=1)
 
         sell_trades = list(filter(lambda trade: trade.is_sell, trades))
         sell_x = list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, sell_trades)))
         sell_y = list(map(lambda trade: trade.price, sell_trades))
         sell_s = list(map(self.to_size, sell_trades))
-        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue')
+        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=2)
 
         buy_trades = list(filter(lambda trade: trade.is_buy, trades))
         buy_x = list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, buy_trades)))
         buy_y = list(map(lambda trade: trade.price, buy_trades))
         buy_s = list(map(self.to_size, buy_trades))
-        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green')
+        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=2)
 
         if self.arguments.output:
             plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)
