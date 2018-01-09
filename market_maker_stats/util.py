@@ -18,7 +18,7 @@
 
 SIZE_MIN = 30
 SIZE_MAX = 100
-SIZE_PRICE_MAX = 2500
+SIZE_PRICE_MAX = 5000
 
 
 def amount_in_sai_to_size(amount_in_sai):

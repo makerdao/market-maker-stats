@@ -130,19 +130,19 @@ class BiboxMarketMakerChart:
 
         timestamps = list(map(self.to_timestamp, prices))
         market_prices = list(map(lambda price: price.market_price, prices))
-        plt.plot_date(timestamps, market_prices, 'r-')
+        plt.plot_date(timestamps, market_prices, 'r-', zorder=1)
 
         sell_trades = list(filter(lambda trade: trade.is_sell, trades))
         sell_x = list(map(self.to_timestamp, sell_trades))
         sell_y = list(map(self.to_price, sell_trades))
         sell_s = list(map(self.to_size, sell_trades))
-        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue')
+        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=2)
 
         buy_trades = list(filter(lambda trade: not trade.is_sell, trades))
         buy_x = list(map(self.to_timestamp, buy_trades))
         buy_y = list(map(self.to_price, buy_trades))
         buy_s = list(map(self.to_size, buy_trades))
-        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green')
+        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=2)
 
         if self.arguments.output:
             plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)
