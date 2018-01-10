@@ -30,9 +30,11 @@ from pymaker.numeric import Wad
 
 
 class Price:
-    def __init__(self, timestamp: int, market_price: Wad):
+    def __init__(self, timestamp: int, market_price: Wad, market_price_min: Wad, market_price_max: Wad):
         self.timestamp = timestamp
         self.market_price = market_price
+        self.market_price_min = market_price_min
+        self.market_price_max = market_price_max
 
 
 class BiboxMarketMakerChart:
@@ -102,7 +104,9 @@ class BiboxMarketMakerChart:
             return self.get_gdax_partial(timestamp_range_start, timestamp_range_end)
         else:
             return list(map(lambda array: Price(timestamp=array[0],
-                                                market_price=array[3]), data))  # array[3] is 'open'
+                                                market_price=(array[1]+array[2])/2,
+                                                market_price_min=array[1],
+                                                market_price_max=array[2]), data))  # array[3] is 'open'
 
     @staticmethod
     def iso_8601(tm) -> str:
@@ -131,6 +135,12 @@ class BiboxMarketMakerChart:
         timestamps = list(map(self.to_timestamp, prices))
         market_prices = list(map(lambda price: price.market_price, prices))
         plt.plot_date(timestamps, market_prices, 'r-', zorder=1)
+
+        if False:
+            market_prices_min = list(map(lambda price: price.market_price_min, prices))
+            market_prices_max = list(map(lambda price: price.market_price_max, prices))
+            plt.plot_date(timestamps, market_prices_min, 'y-', zorder=1)
+            plt.plot_date(timestamps, market_prices_max, 'y-', zorder=1)
 
         sell_trades = list(filter(lambda trade: trade.is_sell, trades))
         sell_x = list(map(self.to_timestamp, sell_trades))
