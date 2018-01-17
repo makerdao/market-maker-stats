@@ -28,8 +28,6 @@ from market_maker_stats.util import amount_in_sai_to_size, get_gdax_prices, iso_
 from pymaker.bibox import BiboxApi, Trade
 from pymaker.numeric import Wad
 
-
-
 class BiboxMarketMakerChart:
     """Tool to analyze the Bibox Market Maker keeper performance."""
 
@@ -83,6 +81,12 @@ class BiboxMarketMakerChart:
         timestamps = list(map(self.to_timestamp, prices))
         market_prices = list(map(lambda price: price.market_price, prices))
         plt.plot_date(timestamps, market_prices, 'r-', zorder=1)
+
+        if False:
+            market_prices_min = list(map(lambda price: price.market_price_min, prices))
+            market_prices_max = list(map(lambda price: price.market_price_max, prices))
+            plt.plot_date(timestamps, market_prices_min, 'y-', zorder=1)
+            plt.plot_date(timestamps, market_prices_max, 'y-', zorder=1)
 
         sell_trades = list(filter(lambda trade: trade.is_sell, trades))
         sell_x = list(map(self.to_timestamp, sell_trades))

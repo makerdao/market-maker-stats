@@ -27,9 +27,11 @@ SIZE_MAX = 100
 SIZE_PRICE_MAX = 5000
 
 class Price:
-    def __init__(self, timestamp: int, market_price: Wad):
+    def __init__(self, timestamp: int, market_price: Wad, market_price_min: Wad, market_price_max: Wad):
         self.timestamp = timestamp
         self.market_price = market_price
+        self.market_price_min = market_price_min
+        self.market_price_max = market_price_max
 
 def amount_in_sai_to_size(amount_in_sai):
     return max(min(float(amount_in_sai) / float(SIZE_PRICE_MAX) * SIZE_MAX, SIZE_MAX), SIZE_MIN)
@@ -71,7 +73,6 @@ def get_gdax_partial(self, timestamp_range_start: int, timestamp_range_end: int)
         return self.get_gdax_partial(timestamp_range_start, timestamp_range_end)
     else:
         return list(map(lambda array: Price(timestamp=array[0],
-                                            market_price_open=array[3],
                                             market_price=(array[1]+array[2])/2,
                                             market_price_min=array[1],
                                             market_price_max=array[2]), data))
