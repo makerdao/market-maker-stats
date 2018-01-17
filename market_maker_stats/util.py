@@ -88,7 +88,7 @@ def rolling_window(a, window):
     strides = a.strides + (a.strides[-1],)
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
-def get_approx_vwaps(start_timestamp_ int, end_timestamp: int, vwap_minutes: int):
+def get_approx_vwaps(start_timestamp: int, end_timestamp: int, vwap_minutes: int):
     # approximates historical vwap_minutes VWAPs from GDAX by querying historical at minimal
     # (60 second) granularity, using (low+high)/2 as price for each bucket, then weighting by volume
     # traded in each bucket. Might not be that accurate, consider applying smoothing on top of this
