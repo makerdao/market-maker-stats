@@ -36,7 +36,7 @@ class Price:
 def amount_in_sai_to_size(amount_in_sai):
     return max(min(float(amount_in_sai) / float(SIZE_PRICE_MAX) * SIZE_MAX, SIZE_MAX), SIZE_MIN)
 
-def get_gdax_prices(self, start_timestamp: int, end_timestamp: int):
+def get_gdax_prices(start_timestamp: int, end_timestamp: int):
     prices = []
     timestamp = start_timestamp
     while timestamp <= end_timestamp:
@@ -48,7 +48,7 @@ def get_gdax_prices(self, start_timestamp: int, end_timestamp: int):
 
     return sorted(prices, key=lambda price: price.timestamp)
 
-def get_gdax_partial(self, timestamp_range_start: int, timestamp_range_end: int):
+def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int):
     start = datetime.datetime.fromtimestamp(timestamp_range_start, pytz.UTC)
     end = datetime.datetime.fromtimestamp(timestamp_range_end, pytz.UTC)
 
