@@ -43,7 +43,7 @@ def get_gdax_prices(start_timestamp: int, end_timestamp: int):
         timestamp_range_start = timestamp
         timestamp_range_end = int((datetime.datetime.fromtimestamp(timestamp) + datetime.timedelta(hours=3)).timestamp())
         prices = prices + list(filter(lambda state: state.timestamp >= start_timestamp and state.timestamp <= end_timestamp,
-                                      self.get_gdax_partial(timestamp_range_start, timestamp_range_end)))
+                                      get_gdax_partial(timestamp_range_start, timestamp_range_end)))
         timestamp = timestamp_range_end
 
     return sorted(prices, key=lambda price: price.timestamp)
