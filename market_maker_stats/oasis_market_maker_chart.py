@@ -26,7 +26,7 @@ import pytz
 import requests
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.util import amount_in_sai_to_size
+from market_maker_stats.util import amount_in_sai_to_size, get_gdax_prices, iso_8601, Price
 from pymaker import Address
 from pymaker.numeric import Wad
 from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
@@ -187,8 +187,8 @@ class OasisMarketMakerChart:
         end = datetime.datetime.fromtimestamp(timestamp_range_end, pytz.UTC)
 
         url = f"https://api.gdax.com/products/ETH-USD/candles?" \
-              f"start={self.iso_8601(start)}&" \
-              f"end={self.iso_8601(end)}&" \
+              f"start={iso_8601(start)}&" \
+              f"end={iso_8601(end)}&" \
               f"granularity=60"
 
         print(f"Downloading: {url}")
@@ -211,10 +211,6 @@ class OasisMarketMakerChart:
                                                 market_price=array[3],    # array[3] is 'open'
                                                 sai_address=self.sai_address,
                                                 weth_address=self.weth_address), data))
-
-    @staticmethod
-    def iso_8601(tm) -> str:
-        return tm.isoformat().replace('+00:00', 'Z')
 
     def convert_timestamp(self, timestamp):
         from matplotlib.dates import date2num
