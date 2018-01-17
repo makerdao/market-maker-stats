@@ -65,18 +65,17 @@ def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int):
     except:
         print("GDAX API network error, waiting 10 secs...")
         time.sleep(10)
-        return self.get_gdax_partial(timestamp_range_start, timestamp_range_end)
+        return get_gdax_partial(timestamp_range_start, timestamp_range_end)
 
     if 'message' in data:
         print("GDAX API rate limiting, slowing down for 2 secs...")
         time.sleep(2)
-        return self.get_gdax_partial(timestamp_range_start, timestamp_range_end)
+        return get_gdax_partial(timestamp_range_start, timestamp_range_end)
     else:
         return list(map(lambda array: Price(timestamp=array[0],
                                             market_price=(array[1]+array[2])/2,
                                             market_price_min=array[1],
                                             market_price_max=array[2]), data))
-
 
 @staticmethod
 def iso_8601(tm) -> str:
