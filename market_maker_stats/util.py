@@ -77,7 +77,6 @@ def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int):
                                             market_price_min=array[1],
                                             market_price_max=array[2]), data))
 
-@staticmethod
 def iso_8601(tm) -> str:
     return tm.isoformat().replace('+00:00', 'Z')
 
