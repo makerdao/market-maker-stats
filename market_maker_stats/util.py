@@ -16,9 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-SIZE_MIN = 30
+SIZE_MIN = 5
 SIZE_MAX = 100
-SIZE_PRICE_MAX = 5000
+SIZE_PRICE_MAX = 30000
 
 
 def amount_in_sai_to_size(amount_in_sai):
