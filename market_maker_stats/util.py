@@ -23,9 +23,9 @@ import numpy as np
 
 from pymaker.numeric import Wad
 
-SIZE_MIN = 30
+SIZE_MIN = 10
 SIZE_MAX = 100
-SIZE_PRICE_MAX = 5000
+SIZE_PRICE_MAX = 30000
 
 class Price:
     def __init__(self, timestamp: int, market_price: Wad, market_price_min: Wad, market_price_max: Wad, volume: Wad):
