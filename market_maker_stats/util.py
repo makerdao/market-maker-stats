@@ -23,7 +23,7 @@ import numpy as np
 
 from pymaker.numeric import Wad
 
-SIZE_MIN = 10
+SIZE_MIN = 5
 SIZE_MAX = 100
 SIZE_PRICE_MAX = 30000
 
