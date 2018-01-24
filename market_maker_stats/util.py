@@ -37,7 +37,20 @@ class Price:
         self.volume = volume
 
 
-def amount_in_usd_to_size(amount_in_usd):
+def amount_to_size(symbol: str, amount: Wad):
+    if symbol.upper() == 'DAI':
+        amount_in_usd = amount
+    elif symbol.upper() == 'BTC':
+        amount_in_usd = amount * 10000
+    elif symbol.upper() == 'ETH':
+        amount_in_usd = amount * 1000
+    else:
+        raise Exception("Don't know how to calculate amount in USD for chart size")
+
+    return amount_in_usd_to_size(amount_in_usd)
+
+
+def amount_in_usd_to_size(amount_in_usd: Wad):
     return max(min(float(amount_in_usd) / float(SIZE_PRICE_MAX) * SIZE_MAX, SIZE_MAX), SIZE_MIN)
 
 

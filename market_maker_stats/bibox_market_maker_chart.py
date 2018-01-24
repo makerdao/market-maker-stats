@@ -22,7 +22,7 @@ import sys
 import time
 from typing import List
 
-from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, Price
+from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, Price, amount_to_size
 from pyexchange.bibox import BiboxApi, Trade
 
 
@@ -74,16 +74,7 @@ class BiboxMarketMakerChart:
         return trade.price
 
     def to_size(self, trade: Trade):
-        if trade.money_symbol.upper() == 'DAI':
-            amount_in_usd = trade.money
-        elif trade.money_symbol.upper() == 'BTC':
-            amount_in_usd = trade.money*10000
-        elif trade.money_symbol.upper() == 'ETH':
-            amount_in_usd = trade.money*1000
-        else:
-            raise Exception("Don't know how to calculate amount in USD for chart size")
-
-        return amount_in_usd_to_size(amount_in_usd)
+        return amount_to_size(trade.money_symbol, trade.money)
 
     def draw(self, prices: List[Price], trades: List[Trade]):
         import matplotlib.dates as md
