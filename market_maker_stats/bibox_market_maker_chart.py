@@ -24,18 +24,9 @@ from typing import List
 import pytz
 import requests
 
-from market_maker_stats.util import amount_in_sai_to_size
+from market_maker_stats.util import amount_in_sai_to_size, get_gdax_prices, iso_8601, Price
 from pymaker.bibox import BiboxApi, Trade
 from pymaker.numeric import Wad
-
-
-class Price:
-    def __init__(self, timestamp: int, market_price: Wad, market_price_min: Wad, market_price_max: Wad):
-        self.timestamp = timestamp
-        self.market_price = market_price
-        self.market_price_min = market_price_min
-        self.market_price_max = market_price_max
-
 
 class BiboxMarketMakerChart:
     """Tool to analyze the Bibox Market Maker keeper performance."""
@@ -63,54 +54,9 @@ class BiboxMarketMakerChart:
 
         start_timestamp = min(trades, key=lambda trade: trade.timestamp).timestamp
         end_timestamp = int(time.time())
-        prices = self.get_gdax_prices(start_timestamp, end_timestamp)
+        prices = get_gdax_prices(start_timestamp, end_timestamp)
 
         self.draw(prices, trades)
-
-    def get_gdax_prices(self, start_timestamp: int, end_timestamp: int):
-        prices = []
-        timestamp = start_timestamp
-        while timestamp <= end_timestamp:
-            timestamp_range_start = timestamp
-            timestamp_range_end = int((datetime.datetime.fromtimestamp(timestamp) + datetime.timedelta(hours=3)).timestamp())
-            prices = prices + list(filter(lambda state: state.timestamp >= start_timestamp and state.timestamp <= end_timestamp,
-                                          self.get_gdax_partial(timestamp_range_start, timestamp_range_end)))
-            timestamp = timestamp_range_end
-
-        return sorted(prices, key=lambda price: price.timestamp)
-
-    def get_gdax_partial(self, timestamp_range_start: int, timestamp_range_end: int):
-        start = datetime.datetime.fromtimestamp(timestamp_range_start, pytz.UTC)
-        end = datetime.datetime.fromtimestamp(timestamp_range_end, pytz.UTC)
-
-        url = f"https://api.gdax.com/products/ETH-USD/candles?" \
-              f"start={self.iso_8601(start)}&" \
-              f"end={self.iso_8601(end)}&" \
-              f"granularity=60"
-
-        print(f"Downloading: {url}")
-
-        # data is: [[ time, low, high, open, close, volume ], [...]]
-        try:
-            data = requests.get(url).json()
-        except:
-            print("GDAX API network error, waiting 10 secs...")
-            time.sleep(10)
-            return self.get_gdax_partial(timestamp_range_start, timestamp_range_end)
-
-        if 'message' in data:
-            print("GDAX API rate limiting, slowing down for 2 secs...")
-            time.sleep(2)
-            return self.get_gdax_partial(timestamp_range_start, timestamp_range_end)
-        else:
-            return list(map(lambda array: Price(timestamp=array[0],
-                                                market_price=(array[1]+array[2])/2,
-                                                market_price_min=array[1],
-                                                market_price_max=array[2]), data))  # array[3] is 'open'
-
-    @staticmethod
-    def iso_8601(tm) -> str:
-        return tm.isoformat().replace('+00:00', 'Z')
 
     def to_timestamp(self, price_or_trade):
         from matplotlib.dates import date2num
