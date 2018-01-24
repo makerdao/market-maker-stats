@@ -34,6 +34,7 @@ class BiboxMarketMakerChart:
         parser.add_argument("--bibox-api-key", help="API key for the Bibox API", required=True, type=str)
         parser.add_argument("--bibox-secret", help="Secret for the Bibox API", required=True, type=str)
         parser.add_argument("--bibox-timeout", help="Timeout for accessing the Bibox API", default=9.5, type=float)
+        parser.add_argument("--pair", help="Token pair to draw the chart for", required=True, type=str)
         parser.add_argument("--past-trades", help="Number of past trades to fetch and display", required=True, type=int)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
                                                    " Will get displayed on-screen if empty", required=False, type=str)
@@ -49,11 +50,11 @@ class BiboxMarketMakerChart:
             matplotlib.use('Agg')
 
     def main(self):
-        trades = self.bibox_api.get_trades('ETH_DAI', self.arguments.past_trades, retry=True)
+        trades = self.bibox_api.get_trades(self.arguments.pair, self.arguments.past_trades, retry=True, retry_count=20)
 
         start_timestamp = min(trades, key=lambda trade: trade.timestamp).timestamp
         end_timestamp = int(time.time())
-        prices = get_gdax_prices(start_timestamp, end_timestamp)
+        prices = get_gdax_prices(start_timestamp, end_timestamp) if self.arguments.pair == 'ETH_DAI' else []
 
         self.draw(prices, trades)
 
@@ -77,9 +78,10 @@ class BiboxMarketMakerChart:
         ax=plt.gca()
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
-        timestamps = list(map(self.to_timestamp, prices))
-        market_prices = list(map(lambda price: price.market_price, prices))
-        plt.plot_date(timestamps, market_prices, 'r-', zorder=1)
+        if len(prices) > 0:
+            timestamps = list(map(self.to_timestamp, prices))
+            market_prices = list(map(lambda price: price.market_price, prices))
+            plt.plot_date(timestamps, market_prices, 'r-', zorder=1)
 
         if False:
             market_prices_min = list(map(lambda price: price.market_price_min, prices))
