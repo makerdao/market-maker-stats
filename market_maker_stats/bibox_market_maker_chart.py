@@ -35,6 +35,7 @@ class BiboxMarketMakerChart:
         parser.add_argument("--bibox-api-key", help="API key for the Bibox API", required=True, type=str)
         parser.add_argument("--bibox-secret", help="Secret for the Bibox API", required=True, type=str)
         parser.add_argument("--bibox-timeout", help="Timeout for accessing the Bibox API", default=9.5, type=float)
+        parser.add_argument("--bibox-retry-count", help="Retry count for accessing the Bibox API (default: 20)", default=20, type=int)
         parser.add_argument("--pair", help="Token pair to draw the chart for", required=True, type=str)
         parser.add_argument("--past-trades", help="Number of past trades to fetch and display", required=True, type=int)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
@@ -53,7 +54,10 @@ class BiboxMarketMakerChart:
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
 
     def main(self):
-        trades = self.bibox_api.get_trades(self.arguments.pair, self.arguments.past_trades, retry=True, retry_count=20)
+        trades = self.bibox_api.get_trades(pair=self.arguments.pair,
+                                           number_of_trades=self.arguments.past_trades,
+                                           retry=True,
+                                           retry_count=self.arguments.bibox_retry_count)
 
         start_timestamp = min(trades, key=lambda trade: trade.timestamp).timestamp
         end_timestamp = int(time.time())
