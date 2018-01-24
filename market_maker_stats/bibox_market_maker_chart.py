@@ -77,9 +77,9 @@ class BiboxMarketMakerChart:
         if trade.money_symbol.upper() == 'DAI':
             amount_in_usd = trade.money
         elif trade.money_symbol.upper() == 'BTC':
-            amount_in_usd = trade.amount*10000
+            amount_in_usd = trade.money*10000
         elif trade.money_symbol.upper() == 'ETH':
-            amount_in_usd = trade.amount*1000
+            amount_in_usd = trade.money*1000
         else:
             raise Exception("Don't know how to calculate amount in USD for chart size")
 
