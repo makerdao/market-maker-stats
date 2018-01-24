@@ -17,6 +17,7 @@
 
 import argparse
 import datetime
+import logging
 import sys
 import time
 from typing import List
@@ -72,6 +73,8 @@ class EtherDeltaMarketMakerChart:
         if self.arguments.output:
             import matplotlib
             matplotlib.use('Agg')
+
+        logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
 
     def main(self):
         past_trade = self.etherdelta.past_trade(self.arguments.past_blocks)

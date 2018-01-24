@@ -17,6 +17,7 @@
 
 import argparse
 import datetime
+import logging
 import sys
 import time
 from functools import reduce
@@ -95,6 +96,8 @@ class OasisMarketMakerChart:
         if self.arguments.output:
             import matplotlib
             matplotlib.use('Agg')
+
+        logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
 
     def main(self):
         past_make = self.otc.past_make(self.arguments.past_blocks)

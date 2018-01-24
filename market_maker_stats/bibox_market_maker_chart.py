@@ -17,6 +17,7 @@
 
 import argparse
 import datetime
+import logging
 import sys
 import time
 from typing import List
@@ -48,6 +49,8 @@ class BiboxMarketMakerChart:
         if self.arguments.output:
             import matplotlib
             matplotlib.use('Agg')
+
+        logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
 
     def main(self):
         trades = self.bibox_api.get_trades(self.arguments.pair, self.arguments.past_trades, retry=True, retry_count=20)
