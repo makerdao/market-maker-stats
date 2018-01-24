@@ -40,6 +40,8 @@ class Price:
 def amount_to_size(symbol: str, amount: Wad):
     if symbol.upper() == 'DAI':
         amount_in_usd = amount
+    elif symbol.upper() in ['USD', 'USDT']:
+        amount_in_usd = amount
     elif symbol.upper() == 'BTC':
         amount_in_usd = amount * 10000
     elif symbol.upper() == 'ETH':
