@@ -21,12 +21,9 @@ import sys
 import time
 from typing import List
 
-import pytz
-import requests
+from market_maker_stats.util import amount_in_sai_to_size, get_gdax_prices, Price
+from pyexchange.bibox import BiboxApi, Trade
 
-from market_maker_stats.util import amount_in_sai_to_size, get_gdax_prices, iso_8601, Price
-from pymaker.bibox import BiboxApi, Trade
-from pymaker.numeric import Wad
 
 class BiboxMarketMakerChart:
     """Tool to analyze the Bibox Market Maker keeper performance."""
@@ -36,6 +33,7 @@ class BiboxMarketMakerChart:
         parser.add_argument("--bibox-api-server", help="Address of the Bibox API server (default: 'https://api.bibox.com')", default="https://api.bibox.com", type=str)
         parser.add_argument("--bibox-api-key", help="API key for the Bibox API", required=True, type=str)
         parser.add_argument("--bibox-secret", help="Secret for the Bibox API", required=True, type=str)
+        parser.add_argument("--bibox-timeout", help="Timeout for accessing the Bibox API", default=9.5, type=float)
         parser.add_argument("--past-trades", help="Number of past trades to fetch and display", required=True, type=int)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
                                                    " Will get displayed on-screen if empty", required=False, type=str)
@@ -43,14 +41,15 @@ class BiboxMarketMakerChart:
 
         self.bibox_api = BiboxApi(api_server=self.arguments.bibox_api_server,
                                   api_key=self.arguments.bibox_api_key,
-                                  secret=self.arguments.bibox_secret)
+                                  secret=self.arguments.bibox_secret,
+                                  timeout=self.arguments.bibox_timeout)
 
         if self.arguments.output:
             import matplotlib
             matplotlib.use('Agg')
 
     def main(self):
-        trades = self.bibox_api.get_trade_history('ETH_DAI', self.arguments.past_trades, retry=True)
+        trades = self.bibox_api.get_trades('ETH_DAI', self.arguments.past_trades, retry=True)
 
         start_timestamp = min(trades, key=lambda trade: trade.timestamp).timestamp
         end_timestamp = int(time.time())
