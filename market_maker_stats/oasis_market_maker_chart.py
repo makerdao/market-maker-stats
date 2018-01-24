@@ -27,7 +27,7 @@ import pytz
 import requests
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.util import amount_in_sai_to_size, get_gdax_prices, iso_8601, Price
+from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, iso_8601, Price
 from pymaker import Address
 from pymaker.numeric import Wad
 from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
@@ -221,7 +221,7 @@ class OasisMarketMakerChart:
         return date2num(datetime.datetime.fromtimestamp(timestamp))
 
     def to_size(self, trade: Trade):
-        return amount_in_sai_to_size(trade.value_in_sai)
+        return amount_in_usd_to_size(trade.value_in_sai)
 
     def draw(self, states: List[State], trades: List[Trade]):
         import matplotlib.dates as md

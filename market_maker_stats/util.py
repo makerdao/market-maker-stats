@@ -37,8 +37,8 @@ class Price:
         self.volume = volume
 
 
-def amount_in_sai_to_size(amount_in_sai):
-    return max(min(float(amount_in_sai) / float(SIZE_PRICE_MAX) * SIZE_MAX, SIZE_MAX), SIZE_MIN)
+def amount_in_usd_to_size(amount_in_usd):
+    return max(min(float(amount_in_usd) / float(SIZE_PRICE_MAX) * SIZE_MAX, SIZE_MAX), SIZE_MIN)
 
 
 def get_gdax_prices(start_timestamp: int, end_timestamp: int):
