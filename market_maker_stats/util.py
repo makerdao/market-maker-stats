@@ -27,6 +27,7 @@ SIZE_MIN = 5
 SIZE_MAX = 100
 SIZE_PRICE_MAX = 30000
 
+
 class Price:
     def __init__(self, timestamp: int, market_price: Wad, market_price_min: Wad, market_price_max: Wad, volume: Wad):
         self.timestamp = timestamp
@@ -35,8 +36,10 @@ class Price:
         self.market_price_max = market_price_max
         self.volume = volume
 
+
 def amount_in_sai_to_size(amount_in_sai):
     return max(min(float(amount_in_sai) / float(SIZE_PRICE_MAX) * SIZE_MAX, SIZE_MAX), SIZE_MIN)
+
 
 def get_gdax_prices(start_timestamp: int, end_timestamp: int):
     prices = []
@@ -49,6 +52,7 @@ def get_gdax_prices(start_timestamp: int, end_timestamp: int):
         timestamp = timestamp_range_end
 
     return sorted(prices, key=lambda price: price.timestamp)
+
 
 def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int):
     start = datetime.datetime.fromtimestamp(timestamp_range_start, pytz.UTC)
@@ -80,13 +84,16 @@ def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int):
                                             market_price_max=array[2],
                                             volume=array[5]), data))
 
+
 def iso_8601(tm) -> str:
     return tm.isoformat().replace('+00:00', 'Z')
+
 
 def rolling_window(a, window):
     shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
     strides = a.strides + (a.strides[-1],)
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
+
 
 def get_approx_vwaps(start_timestamp: int, end_timestamp: int, vwap_minutes: int):
     # approximates historical vwap_minutes VWAPs from GDAX by querying historical at minimal
@@ -104,11 +111,13 @@ def get_approx_vwaps(start_timestamp: int, end_timestamp: int, vwap_minutes: int
     
     return vwaps
 
+
 def to_direction(x):
     if x:
         return 1.
     else:
         return -1.
+
 
 def parse_trades_json(trades_json: list):
     trades_json = sorted(trades_json, key=lambda trade: trade['timestamp'])
@@ -119,6 +128,7 @@ def parse_trades_json(trades_json: list):
     timestamps = np.array([trade['timestamp'] for trade in trades_json])
     
     return trades, prices, timestamps
+
 
 def calculate_pnl_vwap(trades, prices, timestamps, vwap_minutes=60):
     # first 3 arguments are output of parse_trades_json
