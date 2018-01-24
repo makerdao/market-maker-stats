@@ -98,9 +98,9 @@ class BiboxMarketMakerTrades:
 
             return [self.format_timestamp(trade.timestamp),
                     "Sell" if trade.is_sell else "Buy",
-                    format(float(trade.price), '.3f'),
-                    format(float(trade.amount), '.3f'),
-                    format(float(trade.money), '.3f')]
+                    format(float(trade.price), '.8f'),
+                    format(float(trade.amount), '.8f'),
+                    format(float(trade.money), '.8f')]
 
         table = Texttable(max_width=250)
         table.set_deco(Texttable.HEADER)
