@@ -26,6 +26,7 @@ import pytz
 from texttable import Texttable
 
 from pyexchange.bibox import BiboxApi, Trade
+from pyexchange.gateio import GateIOApi
 
 
 class BiboxMarketMakerTrades:
@@ -33,13 +34,11 @@ class BiboxMarketMakerTrades:
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='bibox-market-maker-trades')
-        parser.add_argument("--bibox-api-server", help="Address of the Bibox API server (default: 'https://api.bibox.com')", default="https://api.bibox.com", type=str)
-        parser.add_argument("--bibox-api-key", help="API key for the Bibox API", required=True, type=str)
-        parser.add_argument("--bibox-secret", help="Secret for the Bibox API", required=True, type=str)
-        parser.add_argument("--bibox-timeout", help="Timeout for accessing the Bibox API", default=9.5, type=float)
-        parser.add_argument("--bibox-retry-count", help="Retry count for accessing the Bibox API (default: 20)", default=20, type=int)
+        parser.add_argument("--gateio-api-server", help="Address of the Gate.io API server (default: 'https://data.gate.io')", default="https://data.gate.io", type=str)
+        parser.add_argument("--gateio-api-key", help="API key for the Gate.io API", required=True, type=str)
+        parser.add_argument("--gateio-secret-key", help="Secret key for the Gate.io API", required=True, type=str)
+        parser.add_argument("--gateio-timeout", help="Timeout for accessing the Gate.io API (in seconds, default: 9.5)", default=9.5, type=float)
         parser.add_argument("--pair", help="Token pair to get the past trades for", required=True, type=str)
-        parser.add_argument("--past-trades", help="Number of past trades to fetch and show", required=True, type=int)
 
         parser_mode = parser.add_mutually_exclusive_group(required=True)
         parser_mode.add_argument('--text', help="List trades as a text table", dest='text', action='store_true')
@@ -47,10 +46,10 @@ class BiboxMarketMakerTrades:
 
         self.arguments = parser.parse_args(args)
 
-        self.bibox_api = BiboxApi(api_server=self.arguments.bibox_api_server,
-                                  api_key=self.arguments.bibox_api_key,
-                                  secret=self.arguments.bibox_secret,
-                                  timeout=self.arguments.bibox_timeout)
+        self.gateio_api = GateIOApi(api_server=self.arguments.gateio_api_server,
+                                    api_key=self.arguments.gateio_api_key,
+                                    secret_key=self.arguments.gateio_secret_key,
+                                    timeout=self.arguments.gateio_timeout)
 
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
 
@@ -64,10 +63,7 @@ class BiboxMarketMakerTrades:
         return self.arguments.pair.split('_')[1].upper()
 
     def main(self):
-        trades = self.bibox_api.get_trades(pair=self.arguments.pair,
-                                           number_of_trades=self.arguments.past_trades,
-                                           retry=True,
-                                           retry_count=self.arguments.bibox_retry_count)
+        trades = self.gateio_api.get_trades(self.arguments.pair)
 
         if self.arguments.text:
             self.text_trades(trades)
