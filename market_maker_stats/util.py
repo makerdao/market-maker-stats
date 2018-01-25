@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+import json
 import logging
 
 import pytz
@@ -56,6 +57,27 @@ def amount_to_size(symbol: str, amount: Wad):
 
 def amount_in_usd_to_size(amount_in_usd: Wad):
     return max(min(float(amount_in_usd) / float(SIZE_PRICE_MAX) * SIZE_MAX, SIZE_MAX), SIZE_MIN)
+
+
+def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
+    prices = []
+    with open(filename, "r") as file:
+        for line in file:
+            try:
+                record = json.loads(line)
+                timestamp = record['timestamp']
+                price = record['price']
+
+                if start_timestamp <= timestamp <= end_timestamp:
+                    prices.append(Price(timestamp=timestamp,
+                                        market_price=price,
+                                        market_price_min=None,
+                                        market_price_max=None,
+                                        volume=None))
+            except:
+                pass
+
+    return sorted(prices, key=lambda price: price.timestamp)
 
 
 def get_gdax_prices(start_timestamp: int, end_timestamp: int):
