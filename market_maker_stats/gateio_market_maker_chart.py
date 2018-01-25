@@ -19,9 +19,10 @@ import argparse
 import datetime
 import logging
 import sys
+import time
 from typing import List
 
-from market_maker_stats.util import amount_to_size
+from market_maker_stats.util import amount_to_size, get_file_prices, Price
 from pyexchange.gateio import GateIOApi, Trade
 
 
@@ -34,6 +35,8 @@ class GateIOMarketMakerChart:
         parser.add_argument("--gateio-api-key", help="API key for the Gate.io API", required=True, type=str)
         parser.add_argument("--gateio-secret-key", help="Secret key for the Gate.io API", required=True, type=str)
         parser.add_argument("--gateio-timeout", help="Timeout for accessing the Gate.io API (in seconds, default: 9.5)", default=9.5, type=float)
+        parser.add_argument("--price-history-file", help="File to use as the price history source", type=str)
+        parser.add_argument("--alternative-price-history-file", help="File to use as the alternative price history source", type=str)
         parser.add_argument("--pair", help="Token pair to draw the chart for", required=True, type=str)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
                                                    " Will get displayed on-screen if empty", required=False, type=str)
@@ -52,7 +55,21 @@ class GateIOMarketMakerChart:
 
     def main(self):
         trades = self.gateio_api.get_trades(self.arguments.pair)
-        self.draw(trades)
+
+        start_timestamp = min(trades, key=lambda trade: trade.timestamp).timestamp
+        end_timestamp = int(time.time())
+
+        if self.arguments.price_history_file:
+            prices = get_file_prices(self.arguments.price_history_file, start_timestamp, end_timestamp)
+        else:
+            prices = []
+
+        if self.arguments.alternative_price_history_file:
+            alternative_prices = get_file_prices(self.arguments.alternative_price_history_file, start_timestamp, end_timestamp)
+        else:
+            alternative_prices = []
+
+        self.draw(prices, alternative_prices, trades)
 
     def to_timestamp(self, price_or_trade):
         from matplotlib.dates import date2num
@@ -65,7 +82,7 @@ class GateIOMarketMakerChart:
     def to_size(self, trade: Trade):
         return amount_to_size(trade.money_symbol, trade.money)
 
-    def draw(self, trades: List[Trade]):
+    def draw(self, prices: List[Price], alternative_prices: List[Price], trades: List[Trade]):
         import matplotlib.dates as md
         import matplotlib.pyplot as plt
 
@@ -74,17 +91,27 @@ class GateIOMarketMakerChart:
         ax=plt.gca()
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
+        if len(prices) > 0:
+            timestamps = list(map(self.to_timestamp, prices))
+            market_prices = list(map(lambda price: price.market_price, prices))
+            plt.plot_date(timestamps, market_prices, 'r-', zorder=2)
+
+        if len(alternative_prices) > 0:
+            timestamps = list(map(self.to_timestamp, alternative_prices))
+            market_prices = list(map(lambda price: price.market_price, alternative_prices))
+            plt.plot_date(timestamps, market_prices, 'y-', zorder=1)
+
         sell_trades = list(filter(lambda trade: trade.is_sell, trades))
         sell_x = list(map(self.to_timestamp, sell_trades))
         sell_y = list(map(self.to_price, sell_trades))
         sell_s = list(map(self.to_size, sell_trades))
-        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=2)
+        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=3)
 
         buy_trades = list(filter(lambda trade: not trade.is_sell, trades))
         buy_x = list(map(self.to_timestamp, buy_trades))
         buy_y = list(map(self.to_price, buy_trades))
         buy_s = list(map(self.to_size, buy_trades))
-        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=2)
+        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=3)
 
         if self.arguments.output:
             plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)
