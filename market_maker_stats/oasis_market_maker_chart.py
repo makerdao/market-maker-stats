@@ -171,49 +171,15 @@ class OasisMarketMakerChart:
         return states
 
     def get_gdax_states(self, timestamps: List[int]):
-        first_timestamp = timestamps[0]
-        last_timestamp = max(timestamps[-1], int(time.time()))
+        start_timestamp = timestamps[0]
+        end_timestamp = max(timestamps[-1], int(time.time()))
+        prices = get_gdax_prices(start_timestamp, end_timestamp)
 
-        states = []
-        timestamp = first_timestamp
-        while timestamp <= last_timestamp:
-            timestamp_range_start = timestamp
-            timestamp_range_end = int((datetime.datetime.fromtimestamp(timestamp) + datetime.timedelta(hours=3)).timestamp())
-            states = states + list(filter(lambda state: state.timestamp >= first_timestamp and state.timestamp <= last_timestamp,
-                                          self.get_gdax_partial(timestamp_range_start, timestamp_range_end)))
-            timestamp = timestamp_range_end
-
-        return states
-
-    def get_gdax_partial(self, timestamp_range_start: int, timestamp_range_end: int):
-        start = datetime.datetime.fromtimestamp(timestamp_range_start, pytz.UTC)
-        end = datetime.datetime.fromtimestamp(timestamp_range_end, pytz.UTC)
-
-        url = f"https://api.gdax.com/products/ETH-USD/candles?" \
-              f"start={iso_8601(start)}&" \
-              f"end={iso_8601(end)}&" \
-              f"granularity=60"
-
-        print(f"Downloading: {url}")
-
-        # data is: [[ time, low, high, open, close, volume ], [...]]
-        try:
-            data = requests.get(url).json()
-        except:
-            print("GDAX API network error, waiting 10 secs...")
-            time.sleep(10)
-            return self.get_gdax_partial(timestamp_range_start, timestamp_range_end)
-
-        if 'message' in data:
-            print("GDAX API rate limiting, slowing down for 2 secs...")
-            time.sleep(2)
-            return self.get_gdax_partial(timestamp_range_start, timestamp_range_end)
-        else:
-            return list(map(lambda array: State(timestamp=array[0],
-                                                order_book=None,
-                                                market_price=array[3],    # array[3] is 'open'
-                                                sai_address=self.sai_address,
-                                                weth_address=self.weth_address), data))
+        return list(map(lambda price: State(timestamp=price.timestamp,
+                                            order_book=None,
+                                            market_price=price.market_price,
+                                            sai_address=self.sai_address,
+                                            weth_address=self.weth_address), prices))
 
     def convert_timestamp(self, timestamp):
         from matplotlib.dates import date2num
