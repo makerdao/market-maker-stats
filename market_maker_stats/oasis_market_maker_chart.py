@@ -72,7 +72,7 @@ class Trade:
 
 
 class OasisMarketMakerChart:
-    """Tool to analyze the OasisDEX Market Maker keeper performance."""
+    """Tool to generate a chart displaying the OasisDEX market maker keeper trades."""
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='oasis-market-maker-chart')

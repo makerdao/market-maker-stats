@@ -48,7 +48,7 @@ class Trade:
 
 
 class EtherDeltaMarketMakerChart:
-    """Tool to analyze the EtherDelta Market Maker keeper performance."""
+    """Tool to generate a chart displaying the EtherDelta market maker keeper trades."""
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='etherdelta-market-maker-chart')

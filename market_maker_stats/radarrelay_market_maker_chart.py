@@ -42,7 +42,7 @@ class Trade:
 
 
 class RadarRelayMarketMakerChart:
-    """Tool to analyze the RadarRelay Market Maker keeper performance."""
+    """Tool to generate a chart displaying the RadarRelay market maker keeper trades."""
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='radarrelay-market-maker-chart')

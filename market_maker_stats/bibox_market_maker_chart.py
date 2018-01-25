@@ -27,7 +27,7 @@ from pyexchange.bibox import BiboxApi, Trade
 
 
 class BiboxMarketMakerChart:
-    """Tool to analyze the Bibox Market Maker keeper performance."""
+    """Tool to generate a chart displaying the Bibox market maker keeper trades."""
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='bibox-market-maker-chart')

@@ -26,7 +26,7 @@ from pyexchange.gateio import GateIOApi, Trade
 
 
 class GateIOMarketMakerChart:
-    """Tool to analyze the gate.io market maker keeper performance."""
+    """Tool to generate a chart displaying the gate.io market maker keeper trades."""
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='gateio-market-maker-chart')
