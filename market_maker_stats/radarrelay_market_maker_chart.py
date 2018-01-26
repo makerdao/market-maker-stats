@@ -26,19 +26,11 @@ import pytz
 import requests
 from web3 import Web3, HTTPProvider
 
+from market_maker_stats.radarrelay import radarrelay_trades, Trade
 from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, iso_8601, Price
 from pymaker import Address
 from pymaker.numeric import Wad
 from pymaker.zrx import ZrxExchange
-
-
-class Trade:
-    def __init__(self, timestamp: int, price: Wad, value_in_sai: Wad, is_buy: bool, is_sell: bool):
-        self.timestamp = timestamp
-        self.price = price
-        self.value_in_sai = value_in_sai
-        self.is_buy = is_buy
-        self.is_sell = is_sell
 
 
 class RadarRelayMarketMakerChart:
@@ -71,26 +63,14 @@ class RadarRelayMarketMakerChart:
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
 
     def main(self):
-        past_trade = self.exchange.past_fill(self.arguments.past_blocks)
+        past_fills = self.exchange.past_fill(self.arguments.past_blocks)
+        trades = radarrelay_trades(self.infura, self.market_maker_address, self.sai_address, self.weth_address, past_fills)
 
-        def sell_trades() -> List[Trade]:
-            return list(map(lambda log_take: Trade(self.get_event_timestamp(log_take), log_take.filled_buy_amount / log_take.filled_pay_amount, log_take.filled_buy_amount, False, True),
-                            filter(lambda log_take: log_take.maker == self.market_maker_address and log_take.buy_token == self.sai_address and log_take.pay_token == self.weth_address, past_trade)))
-
-        def buy_trades() -> List[Trade]:
-            return list(map(lambda log_take: Trade(self.get_event_timestamp(log_take), log_take.filled_pay_amount / log_take.filled_buy_amount, log_take.filled_pay_amount, True, False),
-                            filter(lambda log_take: log_take.maker == self.market_maker_address and log_take.buy_token == self.weth_address and log_take.pay_token == self.sai_address, past_trade)))
-
-        start_timestamp = self.get_event_timestamp(past_trade[0])
+        start_timestamp = trades[0].timestamp
         end_timestamp = int(time.time())
-
         prices = get_gdax_prices(start_timestamp, end_timestamp)
-        trades = sell_trades() + buy_trades()
 
         self.draw(prices, trades)
-
-    def get_event_timestamp(self, event):
-        return self.infura.eth.getBlock(event.raw['blockHash']).timestamp
 
     def convert_timestamp(self, timestamp):
         from matplotlib.dates import date2num
@@ -98,7 +78,7 @@ class RadarRelayMarketMakerChart:
         return date2num(datetime.datetime.fromtimestamp(timestamp))
 
     def to_size(self, trade: Trade):
-        return amount_in_usd_to_size(trade.value_in_sai)
+        return amount_in_usd_to_size(trade.money)
 
     def draw(self, prices: List[Price], trades: List[Trade]):
         import matplotlib.dates as md
