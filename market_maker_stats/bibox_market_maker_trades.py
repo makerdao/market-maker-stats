@@ -29,7 +29,7 @@ from pyexchange.bibox import BiboxApi, Trade
 
 
 class BiboxMarketMakerTrades:
-    """Tool to list historical trades for the Bibox Market Maker keeper."""
+    """Tool to list historical trades for the Bibox market maker keeper."""
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='bibox-market-maker-trades')

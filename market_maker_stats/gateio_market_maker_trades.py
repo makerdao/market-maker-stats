@@ -29,11 +29,11 @@ from pyexchange.bibox import BiboxApi, Trade
 from pyexchange.gateio import GateIOApi
 
 
-class BiboxMarketMakerTrades:
-    """Tool to list historical trades for the Bibox Market Maker keeper."""
+class GateIOMarketMakerTrades:
+    """Tool to list historical trades for the gate.io market maker keeper."""
 
     def __init__(self, args: list):
-        parser = argparse.ArgumentParser(prog='bibox-market-maker-trades')
+        parser = argparse.ArgumentParser(prog='gateio-market-maker-trades')
         parser.add_argument("--gateio-api-server", help="Address of the Gate.io API server (default: 'https://data.gate.io')", default="https://data.gate.io", type=str)
         parser.add_argument("--gateio-api-key", help="API key for the Gate.io API", required=True, type=str)
         parser.add_argument("--gateio-secret-key", help="Secret key for the Gate.io API", required=True, type=str)
@@ -129,4 +129,4 @@ class BiboxMarketMakerTrades:
 
 
 if __name__ == '__main__':
-    BiboxMarketMakerTrades(sys.argv[1:]).main()
+    GateIOMarketMakerTrades(sys.argv[1:]).main()
