@@ -7,9 +7,10 @@ A set of tools for collecting data from the `market-maker-keeper` keepers.
 
 ## oasis-market-maker-chart
 
-Draws a chart with the GDAX price, closest `oasis-market-maker-keeper` bid and asks
-(represented as lines) and trades taking place with the keeper (represented as stars).
-This way we can clearly spot if we are not creating dangerous arbitrage opportunities.
+Draws a chart with the historical GDAX ETH/USD price, closest `oasis-market-maker-keeper` bids and asks
+(represented as lines) and trades taking place with the keeper (represented as dots).
+The size of the dots depends on the trade volume. This way we can clearly spot
+if the keeper is not creating dangerous arbitrage opportunities.
 
 Example result:
 
@@ -47,8 +48,9 @@ optional arguments:
 
 ## etherdelta-market-maker-chart
 
-Draws a chart with the GDAX price and trades taking place with the keeper (represented as stars).
-This way we can clearly spot if we are not creating dangerous arbitrage opportunities.
+Draws a chart with the historical GDAX ETH/USD price and trades taking place with the keeper
+(represented as dots). The size of the dots depends on the trade volume. This way we can clearly spot
+if the keeper is not creating dangerous arbitrage opportunities.
 
 Example result:
 
@@ -87,8 +89,9 @@ optional arguments:
 
 ## radarrelay-market-maker-chart
 
-Draws a chart with the GDAX price and trades taking place with the keeper (represented as stars).
-This way we can clearly spot if we are not creating dangerous arbitrage opportunities.
+Draws a chart with the historical GDAX ETH/USD price and trades taking place with the keeper
+(represented as dots). The size of the dots depends on the trade volume. This way we can clearly spot
+if the keeper is not creating dangerous arbitrage opportunities.
 
 Example result:
 
@@ -127,8 +130,14 @@ optional arguments:
 
 ## bibox-market-maker-chart
 
-Draws a chart with the GDAX price and trades taking place with the keeper (represented as stars).
-This way we can clearly spot if we are not creating dangerous arbitrage opportunities.
+Draws a chart with either the historical GDAX ETH/USD price or the price history read from a file, and trades
+taking place with the keeper (represented as dots). The size of the dots depends on the trade volume.
+This way we can clearly spot if the keeper is not creating dangerous arbitrage opportunities.
+
+Price history files can be supplied using `--price-history-file` and `--alternative-price-history-file`
+arguments. If they are, it is expected that each line of them will be a simple JSON document with `timestamp`
+and `price` properties. If no `--price-history-file` argument is supplied, historical GDAX ETH/USD price
+will be displayed.
 
 Example result:
 
@@ -139,7 +148,11 @@ Example result:
 ```
 usage: bibox-market-maker-chart [-h] [--bibox-api-server BIBOX_API_SERVER]
                                 --bibox-api-key BIBOX_API_KEY --bibox-secret
-                                BIBOX_SECRET --past-trades PAST_TRADES
+                                BIBOX_SECRET [--bibox-timeout BIBOX_TIMEOUT]
+                                [--bibox-retry-count BIBOX_RETRY_COUNT]
+                                [--price-history-file PRICE_HISTORY_FILE]
+                                [--alternative-price-history-file ALTERNATIVE_PRICE_HISTORY_FILE]
+                                --pair PAIR --past-trades PAST_TRADES
                                 [-o OUTPUT]
 
 optional arguments:
@@ -151,6 +164,15 @@ optional arguments:
                         API key for the Bibox API
   --bibox-secret BIBOX_SECRET
                         Secret for the Bibox API
+  --bibox-timeout BIBOX_TIMEOUT
+                        Timeout for accessing the Bibox API
+  --bibox-retry-count BIBOX_RETRY_COUNT
+                        Retry count for accessing the Bibox API (default: 20)
+  --price-history-file PRICE_HISTORY_FILE
+                        File to use as the price history source
+  --alternative-price-history-file ALTERNATIVE_PRICE_HISTORY_FILE
+                        File to use as the alternative price history source
+  --pair PAIR           Token pair to draw the chart for
   --past-trades PAST_TRADES
                         Number of past trades to fetch and display
   -o OUTPUT, --output OUTPUT
