@@ -28,13 +28,6 @@ from market_maker_stats.etherdelta import Trade, etherdelta_trades
 from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, Price
 from pymaker import Address
 from pymaker.etherdelta import EtherDelta
-from pymaker.numeric import Wad
-
-
-class Price:
-    def __init__(self, timestamp: int, market_price: Wad):
-        self.timestamp = timestamp
-        self.market_price = market_price
 
 
 class EtherDeltaMarketMakerChart:
