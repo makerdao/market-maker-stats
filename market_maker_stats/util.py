@@ -23,6 +23,7 @@ import pytz
 import requests
 import time
 import numpy as np
+from web3 import Web3
 
 from pymaker.numeric import Wad
 
@@ -78,6 +79,10 @@ def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
                 pass
 
     return sorted(prices, key=lambda price: price.timestamp)
+
+
+def get_event_timestamp(infura: Web3, event):
+    return infura.eth.getBlock(event.raw['blockHash']).timestamp
 
 
 def get_gdax_prices(start_timestamp: int, end_timestamp: int):

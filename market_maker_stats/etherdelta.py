@@ -19,6 +19,7 @@ from typing import List
 
 from web3 import Web3
 
+from market_maker_stats.util import get_event_timestamp
 from pymaker import Address
 from pymaker.etherdelta import LogTrade
 from pymaker.numeric import Wad
@@ -42,15 +43,12 @@ def etherdelta_trades(infura: Web3, market_maker_address: Address, sai_address: 
     assert(isinstance(eth_address, Address))
     assert(isinstance(past_trades, list))
 
-    def get_event_timestamp(event):
-        return infura.eth.getBlock(event.raw['blockHash']).timestamp
-
     def sell_trades() -> List[Trade]:
-        return list(map(lambda log_trade: Trade(get_event_timestamp(log_trade), log_trade.give_amount / log_trade.take_amount, log_trade.take_amount, log_trade.give_amount, False, True, log_trade.taker),
+        return list(map(lambda log_trade: Trade(get_event_timestamp(infura, log_trade), log_trade.give_amount / log_trade.take_amount, log_trade.take_amount, log_trade.give_amount, False, True, log_trade.taker),
                     filter(lambda log_trade: log_trade.maker == market_maker_address and log_trade.buy_token == sai_address and log_trade.pay_token == eth_address, past_trades)))
 
     def buy_trades() -> List[Trade]:
-        return list(map(lambda log_trade: Trade(get_event_timestamp(log_trade), log_trade.take_amount / log_trade.give_amount, log_trade.give_amount, log_trade.take_amount, True, False, log_trade.taker),
+        return list(map(lambda log_trade: Trade(get_event_timestamp(infura, log_trade), log_trade.take_amount / log_trade.give_amount, log_trade.give_amount, log_trade.take_amount, True, False, log_trade.taker),
                     filter(lambda log_trade: log_trade.maker == market_maker_address and log_trade.buy_token == eth_address and log_trade.pay_token == sai_address, past_trades)))
 
     trades = sell_trades() + buy_trades()
