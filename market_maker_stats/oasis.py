@@ -23,32 +23,34 @@ from pymaker.oasis import LogTake
 
 
 class Trade:
-    def __init__(self, timestamp: int, price: Wad, value_in_sai: Wad, is_buy: bool, is_sell: bool):
+    def __init__(self, timestamp: int, price: Wad, amount: Wad, money: Wad, is_buy: bool, is_sell: bool):
         self.timestamp = timestamp
         self.price = price
-        self.value_in_sai = value_in_sai
+        self.amount = amount
+        self.money = money
         self.is_buy = is_buy
         self.is_sell = is_sell
 
 
-def oasis_trades(market_maker_address: Address, sai_address: Address, weth_address: Address, past_takes: List[LogTake]):
+def oasis_trades(market_maker_address: Address, sai_address: Address, weth_address: Address, past_takes: List[LogTake]) -> list:
     assert(isinstance(market_maker_address, Address))
     assert(isinstance(sai_address, Address))
     assert(isinstance(weth_address, Address))
     assert(isinstance(past_takes, list))
 
     def sell_trades() -> List[Trade]:
-        regular = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, log_take.give_amount, False, True),
+        regular = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, log_take.take_amount, log_take.give_amount, False, True),
                       filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token == sai_address and log_take.pay_token == weth_address, past_takes))
-        matched = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, log_take.take_amount, False, True),
+        matched = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, log_take.give_amount, log_take.take_amount, False, True),
                       filter(lambda log_take: log_take.taker == market_maker_address and log_take.buy_token == weth_address and log_take.pay_token == sai_address, past_takes))
         return list(regular) + list(matched)
 
     def buy_trades() -> List[Trade]:
-        regular = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, log_take.take_amount, True, False),
+        regular = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, log_take.give_amount, log_take.take_amount, True, False),
                       filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token == weth_address and log_take.pay_token == sai_address, past_takes))
-        matched = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, log_take.give_amount, True, False),
+        matched = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, log_take.take_amount, log_take.give_amount, True, False),
                       filter(lambda log_take: log_take.taker == market_maker_address and log_take.buy_token == sai_address and log_take.pay_token == weth_address, past_takes))
         return list(regular) + list(matched)
 
-    return sell_trades() + buy_trades()
+    trades = sell_trades() + buy_trades()
+    return sorted(trades, key=lambda trade: trade.timestamp)

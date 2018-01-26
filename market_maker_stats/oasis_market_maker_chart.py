@@ -163,7 +163,7 @@ class OasisMarketMakerChart:
         return date2num(datetime.datetime.fromtimestamp(timestamp))
 
     def to_size(self, trade: Trade):
-        return amount_in_usd_to_size(trade.value_in_sai)
+        return amount_in_usd_to_size(trade.money)
 
     def draw(self, states: List[State], trades: List[Trade]):
         import matplotlib.dates as md
