@@ -1,6 +1,16 @@
 # market-maker-stats
 
-A set of tools for collecting data from the `market-maker-keeper` keepers.
+A set of tools for collecting data from the `market-maker-keeper`
+(<https://github.com/makerdao/market-maker-keeper>) keepers.
+
+The following tools are currently present:
+* `oasis-market-maker-chart`,
+* `oasis-market-maker-trades`,
+* `etherdelta-market-maker-chart`,
+* `etherdelta-market-maker-trades`,
+* `radarrelay-market-maker-chart`,
+* `bibox-market-maker-chart`,
+* `bibox-market-maker-trades`.
 
 <https://chat.makerdao.com/channel/keeper>
 
