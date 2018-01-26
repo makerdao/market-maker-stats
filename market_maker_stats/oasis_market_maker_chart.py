@@ -23,10 +23,9 @@ import time
 from functools import reduce
 from typing import List, Optional
 
-import pytz
-import requests
 from web3 import Web3, HTTPProvider
 
+from market_maker_stats.oasis import oasis_trades, Trade
 from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, iso_8601, Price
 from pymaker import Address
 from pymaker.numeric import Wad
@@ -60,15 +59,6 @@ class State:
 
     def buy_prices(self) -> List[Wad]:
         return list(map(lambda order: order.sell_to_buy_price, self.buy_orders()))
-
-
-class Trade:
-    def __init__(self, timestamp: int, price: Wad, value_in_sai: Wad, is_buy: bool, is_sell: bool):
-        self.timestamp = timestamp
-        self.price = price
-        self.value_in_sai = value_in_sai
-        self.is_buy = is_buy
-        self.is_sell = is_sell
 
 
 class OasisMarketMakerChart:
@@ -129,20 +119,6 @@ class OasisMarketMakerChart:
                                    sai_address=self.sai_address,
                                    weth_address=self.weth_address)]
 
-        def sell_trades() -> List[Trade]:
-            regular = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, log_take.give_amount, False, True),
-                          filter(lambda log_take: log_take.maker == self.market_maker_address and log_take.buy_token == self.sai_address and log_take.pay_token == self.weth_address, past_take))
-            matched = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, log_take.take_amount, False, True),
-                          filter(lambda log_take: log_take.taker == self.market_maker_address and log_take.buy_token == self.weth_address and log_take.pay_token == self.sai_address, past_take))
-            return list(regular) + list(matched)
-
-        def buy_trades() -> List[Trade]:
-            regular = map(lambda log_take: Trade(log_take.timestamp, log_take.take_amount / log_take.give_amount, log_take.take_amount, True, False),
-                          filter(lambda log_take: log_take.maker == self.market_maker_address and log_take.buy_token == self.weth_address and log_take.pay_token == self.sai_address, past_take))
-            matched = map(lambda log_take: Trade(log_take.timestamp, log_take.give_amount / log_take.take_amount, log_take.give_amount, True, False),
-                          filter(lambda log_take: log_take.taker == self.market_maker_address and log_take.buy_token == self.sai_address and log_take.pay_token == self.weth_address, past_take))
-            return list(regular) + list(matched)
-
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
         oasis_states = reduce(reduce_func, event_timestamps, [])
         gdax_states = self.get_gdax_states(event_timestamps)
@@ -150,7 +126,7 @@ class OasisMarketMakerChart:
         states = sorted(oasis_states + gdax_states, key=lambda state: state.timestamp)
         states = self.consolidate_states(states)
 
-        trades = sell_trades() + buy_trades()
+        trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, past_take)
 
         self.draw(states, trades)
 
