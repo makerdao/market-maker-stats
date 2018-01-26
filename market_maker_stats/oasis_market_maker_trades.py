@@ -90,7 +90,8 @@ class OasisMarketMakerTrades:
                 'amount': float(trade.amount),
                 'amount_symbol': self.base_token(),
                 'money': float(trade.money),
-                'money_symbol': self.quote_token()
+                'money_symbol': self.quote_token(),
+                'taker': str(trade.taker)
             }
 
         print(json.dumps(list(map(build_item, trades)), indent=True))
@@ -103,17 +104,19 @@ class OasisMarketMakerTrades:
                     "Sell" if trade.is_sell else "Buy",
                     format(float(trade.price), '.8f'),
                     format(float(trade.amount), '.8f'),
-                    format(float(trade.money), '.8f')]
+                    format(float(trade.money), '.8f'),
+                    str(trade.taker)]
 
         table = Texttable(max_width=250)
         table.set_deco(Texttable.HEADER)
-        table.set_cols_dtype(['t', 't', 't', 't', 't'])
-        table.set_cols_align(['l', 'l', 'r', 'r', 'r'])
+        table.set_cols_dtype(['t', 't', 't', 't', 't', 't'])
+        table.set_cols_align(['l', 'l', 'r', 'r', 'r', 'l'])
         table.add_rows([["Date/time",
                          "Type",
                          "Price",
                          f"Amount in {self.base_token()}",
-                         f"Value in {self.quote_token()}"]] + list(map(table_row, trades)))
+                         f"Value in {self.quote_token()}",
+                         f"Taker"]] + list(map(table_row, trades)))
 
         print(f"Trade history on the {self.token_pair()} pair:")
         print(f"")
