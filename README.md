@@ -1,5 +1,8 @@
 # market-maker-stats
 
+[![Build Status](https://travis-ci.org/makerdao/market-maker-stats.svg?branch=master)](https://travis-ci.org/makerdao/market-maker-stats)
+[![codecov](https://codecov.io/gh/makerdao/market-maker-stats/branch/master/graph/badge.svg)](https://codecov.io/gh/makerdao/market-maker-stats)
+
 A set of tools for collecting data from the `market-maker-keeper`
 (<https://github.com/makerdao/market-maker-keeper>) keepers.
 
