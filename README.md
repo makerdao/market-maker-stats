@@ -3,7 +3,7 @@
 A set of tools for collecting data from the `market-maker-keeper`
 (<https://github.com/makerdao/market-maker-keeper>) keepers.
 
-The following tools are currently present:
+The following tools are available in this repository:
 * `oasis-market-maker-chart`,
 * `oasis-market-maker-trades`,
 * `etherdelta-market-maker-chart`,
@@ -13,6 +13,20 @@ The following tools are currently present:
 * `bibox-market-maker-trades`.
 
 <https://chat.makerdao.com/channel/keeper>
+
+
+## Installation
+
+This project uses *Python 3.6.2*.
+
+In order to clone the project and install required third-party packages please execute:
+```
+git clone https://github.com/makerdao/market-maker-keeper.git
+git submodule update --init --recursive
+pip3 install -r requirements.txt
+```
+
+For some known macOS issues see the [pymaker](https://github.com/makerdao/pymaker) README.
 
 
 ## oasis-market-maker-chart
