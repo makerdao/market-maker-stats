@@ -61,7 +61,7 @@ class BiboxMarketMakerChart:
                                            retry=True,
                                            retry_count=self.arguments.bibox_retry_count)
 
-        start_timestamp = min(trades, key=lambda trade: trade.timestamp).timestamp
+        start_timestamp = min(trades, key=lambda trade: trade.timestamp).timestamp if len(trades) > 0 else int(time.time() - 3600)
         end_timestamp = int(time.time())
 
         if self.arguments.price_history_file:
@@ -95,6 +95,9 @@ class BiboxMarketMakerChart:
         plt.xticks(rotation=25)
         ax=plt.gca()
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
+
+        if len(trades) == 0:
+            ax.set_title('(no trades found)')
 
         if len(prices) > 0:
             timestamps = list(map(self.to_timestamp, prices))

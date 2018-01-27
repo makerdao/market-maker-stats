@@ -176,6 +176,9 @@ class OasisMarketMakerChart:
         ax=plt.gca()
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
+        if len(trades) == 0:
+            ax.set_title('(no trades found in this block range)')
+
         timestamps = list(map(self.convert_timestamp, map(lambda state: state.timestamp, states)))
         closest_sell_prices = list(map(lambda state: state.closest_sell_price(), states))
         closest_buy_prices = list(map(lambda state: state.closest_buy_price(), states))

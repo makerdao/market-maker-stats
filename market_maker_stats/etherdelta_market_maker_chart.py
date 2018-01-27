@@ -65,7 +65,7 @@ class EtherDeltaMarketMakerChart:
         past_trades = self.etherdelta.past_trade(self.arguments.past_blocks, {'get': self.market_maker_address.address})
         trades = etherdelta_trades(self.infura, self.market_maker_address, self.sai_address, self.eth_address, past_trades)
 
-        start_timestamp = trades[0].timestamp
+        start_timestamp = trades[0].timestamp if len(trades) > 0 else int(time.time() - 3600)
         end_timestamp = int(time.time())
         prices = get_gdax_prices(start_timestamp, end_timestamp)
 
@@ -87,6 +87,9 @@ class EtherDeltaMarketMakerChart:
         plt.xticks(rotation=25)
         ax=plt.gca()
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
+
+        if len(trades) == 0:
+            ax.set_title('(no trades found in this block range)')
 
         timestamps = list(map(self.convert_timestamp, map(lambda price: price.timestamp, prices)))
         market_prices = list(map(lambda price: price.market_price, prices))
