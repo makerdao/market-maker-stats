@@ -74,7 +74,7 @@ class RadarRelayMarketMakerTrades:
         return "DAI"
 
     def main(self):
-        past_fills = self.exchange.past_fill(self.arguments.past_blocks)
+        past_fills = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
         trades = radarrelay_trades(self.infura, self.market_maker_address, self.sai_address, self.weth_address, past_fills)
 
         if self.arguments.text:

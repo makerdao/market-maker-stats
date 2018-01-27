@@ -62,7 +62,7 @@ class EtherDeltaMarketMakerChart:
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
 
     def main(self):
-        past_trades = self.etherdelta.past_trade(self.arguments.past_blocks)
+        past_trades = self.etherdelta.past_trade(self.arguments.past_blocks, {'get': self.market_maker_address.address})
         trades = etherdelta_trades(self.infura, self.market_maker_address, self.sai_address, self.eth_address, past_trades)
 
         start_timestamp = trades[0].timestamp
