@@ -30,7 +30,8 @@ Example result:
 
 ```
 usage: oasis-market-maker-chart [-h] [--rpc-host RPC_HOST]
-                                [--rpc-port RPC_PORT] --oasis-address
+                                [--rpc-port RPC_PORT]
+                                [--rpc-timeout RPC_TIMEOUT] --oasis-address
                                 OASIS_ADDRESS --sai-address SAI_ADDRESS
                                 --weth-address WETH_ADDRESS
                                 --market-maker-address MARKET_MAKER_ADDRESS
@@ -40,6 +41,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
   --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
+  --rpc-timeout RPC_TIMEOUT
+                        JSON-RPC timeout (in seconds, default: 60)
   --oasis-address OASIS_ADDRESS
                         Ethereum address of the OasisDEX contract
   --sai-address SAI_ADDRESS
@@ -110,7 +113,8 @@ Example JSON output:
 
 ```
 usage: oasis-market-maker-trades [-h] [--rpc-host RPC_HOST]
-                                 [--rpc-port RPC_PORT] --oasis-address
+                                 [--rpc-port RPC_PORT]
+                                 [--rpc-timeout RPC_TIMEOUT] --oasis-address
                                  OASIS_ADDRESS --sai-address SAI_ADDRESS
                                  --weth-address WETH_ADDRESS
                                  --market-maker-address MARKET_MAKER_ADDRESS
@@ -120,6 +124,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
   --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
+  --rpc-timeout RPC_TIMEOUT
+                        JSON-RPC timeout (in seconds, default: 60)
   --oasis-address OASIS_ADDRESS
                         Ethereum address of the OasisDEX contract
   --sai-address SAI_ADDRESS
@@ -149,6 +155,7 @@ Example result:
 ```
 usage: etherdelta-market-maker-chart [-h] [--rpc-host RPC_HOST]
                                      [--rpc-port RPC_PORT]
+                                     [--rpc-timeout RPC_TIMEOUT]
                                      --etherdelta-address ETHERDELTA_ADDRESS
                                      --sai-address SAI_ADDRESS --eth-address
                                      ETH_ADDRESS --market-maker-address
@@ -159,6 +166,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
   --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
+  --rpc-timeout RPC_TIMEOUT
+                        JSON-RPC timeout (in seconds, default: 60)
   --etherdelta-address ETHERDELTA_ADDRESS
                         Ethereum address of the EtherDelta contract
   --sai-address SAI_ADDRESS
@@ -187,6 +196,7 @@ For sample text and JSON output, see the `oasis-market-maker-trades` above.
 ```
 usage: etherdelta-market-maker-trades [-h] [--rpc-host RPC_HOST]
                                       [--rpc-port RPC_PORT]
+                                      [--rpc-timeout RPC_TIMEOUT]
                                       --etherdelta-address ETHERDELTA_ADDRESS
                                       --sai-address SAI_ADDRESS --eth-address
                                       ETH_ADDRESS --market-maker-address
@@ -197,6 +207,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
   --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
+  --rpc-timeout RPC_TIMEOUT
+                        JSON-RPC timeout (in seconds, default: 60)
   --etherdelta-address ETHERDELTA_ADDRESS
                         Ethereum address of the EtherDelta contract
   --sai-address SAI_ADDRESS
@@ -226,10 +238,11 @@ Example result:
 
 ```
 usage: radarrelay-market-maker-chart [-h] [--rpc-host RPC_HOST]
-                                     [--rpc-port RPC_PORT] --exchange-address
-                                     EXCHANGE_ADDRESS --sai-address
-                                     SAI_ADDRESS --weth-address WETH_ADDRESS
-                                     --market-maker-address
+                                     [--rpc-port RPC_PORT]
+                                     [--rpc-timeout RPC_TIMEOUT]
+                                     --exchange-address EXCHANGE_ADDRESS
+                                     --sai-address SAI_ADDRESS --weth-address
+                                     WETH_ADDRESS --market-maker-address
                                      MARKET_MAKER_ADDRESS --past-blocks
                                      PAST_BLOCKS [-o OUTPUT]
 
@@ -237,6 +250,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
   --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
+  --rpc-timeout RPC_TIMEOUT
+                        JSON-RPC timeout (in seconds, default: 60)
   --exchange-address EXCHANGE_ADDRESS
                         Ethereum address of the 0x contract
   --sai-address SAI_ADDRESS
