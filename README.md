@@ -10,7 +10,9 @@ The following tools are available in this repository:
 * `etherdelta-market-maker-trades`,
 * `radarrelay-market-maker-chart`,
 * `bibox-market-maker-chart`,
-* `bibox-market-maker-trades`.
+* `bibox-market-maker-trades`,
+* `gateio-market-maker-chart`,
+* `gateio-market-maker-trades`.
 
 <https://chat.makerdao.com/channel/keeper>
 
@@ -368,6 +370,85 @@ optional arguments:
   --pair PAIR           Token pair to get the past trades for
   --past-trades PAST_TRADES
                         Number of past trades to fetch and show
+  --text                List trades as a text table
+  --json                List trades as a JSON document
+```
+
+
+## gateio-market-maker-chart
+
+Draws a chart with price history read from a file and recent trades which took place with the keeper
+(represented as dots). The size of the dots depends on the trade volume. This way we can clearly spot
+if the keeper is not creating dangerous arbitrage opportunities.
+
+Price history files can be supplied using `--price-history-file` and `--alternative-price-history-file`
+arguments. If they are, it is expected that each line of them will be a simple JSON document with `timestamp`
+and `price` properties. If neither `--price-history-file` not `--alternative-price-history-file` arguments
+are supplied, only the trades will be displayed on the chart.
+
+### Usage
+
+```
+usage: gateio-market-maker-chart [-h] [--gateio-api-server GATEIO_API_SERVER]
+                                 --gateio-api-key GATEIO_API_KEY
+                                 --gateio-secret-key GATEIO_SECRET_KEY
+                                 [--gateio-timeout GATEIO_TIMEOUT]
+                                 [--price-history-file PRICE_HISTORY_FILE]
+                                 [--alternative-price-history-file ALTERNATIVE_PRICE_HISTORY_FILE]
+                                 --pair PAIR [-o OUTPUT]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --gateio-api-server GATEIO_API_SERVER
+                        Address of the Gate.io API server (default:
+                        'https://data.gate.io')
+  --gateio-api-key GATEIO_API_KEY
+                        API key for the Gate.io API
+  --gateio-secret-key GATEIO_SECRET_KEY
+                        Secret key for the Gate.io API
+  --gateio-timeout GATEIO_TIMEOUT
+                        Timeout for accessing the Gate.io API (in seconds,
+                        default: 9.5)
+  --price-history-file PRICE_HISTORY_FILE
+                        File to use as the price history source
+  --alternative-price-history-file ALTERNATIVE_PRICE_HISTORY_FILE
+                        File to use as the alternative price history source
+  --pair PAIR           Token pair to draw the chart for
+  -o OUTPUT, --output OUTPUT
+                        Name of the filename to save to chart to. Will get
+                        displayed on-screen if empty
+```
+
+
+## gateio-market-maker-trades
+
+Exports the list of recent trades which took place with the keeper, either as a text table (if invoked
+with `--text`) or as a JSON document (if invoked with `--json`).
+
+For sample text and JSON output, see the `oasis-market-maker-trades` above.
+
+### Usage
+
+```
+usage: gateio-market-maker-trades [-h] [--gateio-api-server GATEIO_API_SERVER]
+                                  --gateio-api-key GATEIO_API_KEY
+                                  --gateio-secret-key GATEIO_SECRET_KEY
+                                  [--gateio-timeout GATEIO_TIMEOUT] --pair
+                                  PAIR (--text | --json)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --gateio-api-server GATEIO_API_SERVER
+                        Address of the Gate.io API server (default:
+                        'https://data.gate.io')
+  --gateio-api-key GATEIO_API_KEY
+                        API key for the Gate.io API
+  --gateio-secret-key GATEIO_SECRET_KEY
+                        Secret key for the Gate.io API
+  --gateio-timeout GATEIO_TIMEOUT
+                        Timeout for accessing the Gate.io API (in seconds,
+                        default: 9.5)
+  --pair PAIR           Token pair to get the past trades for
   --text                List trades as a text table
   --json                List trades as a JSON document
 ```
