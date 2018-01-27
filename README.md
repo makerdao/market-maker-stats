@@ -284,6 +284,49 @@ optional arguments:
 ```
 
 
+## radarrelay-market-maker-trades
+
+Draws a chart with the historical GDAX ETH/USD price and recent trades which took place with the keeper
+(represented as dots). The size of the dots depends on the trade volume. This way we can clearly spot
+if the keeper is not creating dangerous arbitrage opportunities.
+
+### Usage
+
+```
+usage: radarrelay-market-maker-trades [-h] [--rpc-host RPC_HOST]
+                                      [--rpc-port RPC_PORT]
+                                      [--rpc-timeout RPC_TIMEOUT]
+                                      --exchange-address EXCHANGE_ADDRESS
+                                      --sai-address SAI_ADDRESS --weth-address
+                                      WETH_ADDRESS --market-maker-address
+                                      MARKET_MAKER_ADDRESS --past-blocks
+                                      PAST_BLOCKS [-o OUTPUT]
+                                      (--text | --json)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
+  --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
+  --rpc-timeout RPC_TIMEOUT
+                        JSON-RPC timeout (in seconds, default: 60)
+  --exchange-address EXCHANGE_ADDRESS
+                        Ethereum address of the 0x contract
+  --sai-address SAI_ADDRESS
+                        Ethereum address of the SAI token
+  --weth-address WETH_ADDRESS
+                        Ethereum address of the WETH token
+  --market-maker-address MARKET_MAKER_ADDRESS
+                        Ethereum account of the market maker to analyze
+  --past-blocks PAST_BLOCKS
+                        Number of past blocks to analyze
+  -o OUTPUT, --output OUTPUT
+                        Name of the filename to save to chart to. Will get
+                        displayed on-screen if empty
+  --text                List trades as a text table
+  --json                List trades as a JSON document
+```
+
+
 ## bibox-market-maker-chart
 
 Draws a chart with either the historical GDAX ETH/USD price or the price history read from a file, and recent
