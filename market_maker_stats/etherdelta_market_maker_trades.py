@@ -38,6 +38,7 @@ class EtherDeltaMarketMakerTrades:
         parser = argparse.ArgumentParser(prog='etherdelta-market-maker-trades')
         parser.add_argument("--rpc-host", help="JSON-RPC host (default: `localhost')", default="localhost", type=str)
         parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
+        parser.add_argument("--rpc-timeout", help="JSON-RPC timeout (in seconds, default: 60)", type=int, default=60)
         parser.add_argument("--etherdelta-address", help="Ethereum address of the EtherDelta contract", required=True, type=str)
         parser.add_argument("--sai-address", help="Ethereum address of the SAI token", required=True, type=str)
         parser.add_argument("--eth-address", help="Ethereum address of the ETH token", required=True, type=str)
@@ -50,7 +51,8 @@ class EtherDeltaMarketMakerTrades:
 
         self.arguments = parser.parse_args(args)
 
-        self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}", request_kwargs={'timeout': 120}))
+        self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}",
+                                      request_kwargs={'timeout': self.arguments.rpc_timeout}))
         self.infura = Web3(HTTPProvider(endpoint_uri=f"https://mainnet.infura.io/", request_kwargs={'timeout': 120}))
         self.sai_address = Address(self.arguments.sai_address)
         self.eth_address = Address(self.arguments.eth_address)
