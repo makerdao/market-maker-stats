@@ -38,7 +38,7 @@ Draws a chart with the historical GDAX ETH/USD price, closest `oasis-market-make
 The size of the dots depends on the trade volume. This way we can clearly spot
 if the keeper is not creating dangerous arbitrage opportunities.
 
-Example result:
+Sample result:
 
 ![](https://s10.postimg.org/qzzbyuzxl/oasis_server1_1.png)
 
@@ -162,7 +162,7 @@ Draws a chart with the historical GDAX ETH/USD price and recent trades which too
 (represented as dots). The size of the dots depends on the trade volume. This way we can clearly spot
 if the keeper is not creating dangerous arbitrage opportunities.
 
-Example result:
+Sample result:
 
 ![](https://s10.postimg.org/u83tbvjmh/etherdelta_server1_1.png)
 
@@ -246,7 +246,7 @@ Draws a chart with the historical GDAX ETH/USD price and recent trades which too
 (represented as dots). The size of the dots depends on the trade volume. This way we can clearly spot
 if the keeper is not creating dangerous arbitrage opportunities.
 
-Example result:
+Sample result:
 
 ![](https://s10.postimg.org/u83tbvjmh/etherdelta_server1_1.png)
 
@@ -295,7 +295,7 @@ arguments. If they are, it is expected that each line of them will be a simple J
 and `price` properties. If no `--price-history-file` argument is supplied, historical GDAX ETH/USD price
 will be displayed.
 
-Example result:
+Sample result:
 
 ![](https://s10.postimg.org/g1o2gvteh/bibox_server1_2.png)
 
