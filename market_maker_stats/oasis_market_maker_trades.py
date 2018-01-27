@@ -27,6 +27,7 @@ from texttable import Texttable
 from web3 import Web3, HTTPProvider
 
 from market_maker_stats.oasis import Trade, oasis_trades
+from market_maker_stats.util import format_timestamp
 from pymaker import Address
 from pymaker.oasis import SimpleMarket
 
@@ -85,7 +86,7 @@ class OasisMarketMakerTrades:
 
         def build_item(trade: Trade) -> dict:
             return {
-                'datetime': self.format_timestamp(trade.timestamp),
+                'datetime': format_timestamp(trade.timestamp),
                 'timestamp': trade.timestamp,
                 'type': "Sell" if trade.is_sell else "Buy",
                 'price': float(trade.price),
@@ -102,7 +103,7 @@ class OasisMarketMakerTrades:
         assert(isinstance(trades, list))
 
         def table_row(trade: Trade) -> list:
-            return [self.format_timestamp(trade.timestamp),
+            return [format_timestamp(trade.timestamp),
                     "Sell" if trade.is_sell else "Buy",
                     format(float(trade.price), '.8f'),
                     format(float(trade.amount), '.8f'),
@@ -129,11 +130,6 @@ class OasisMarketMakerTrades:
         print(f"")
         print(f"Number of trades: {len(trades)}")
         print(f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}")
-
-    @staticmethod
-    def format_timestamp(timestamp: int):
-        assert(isinstance(timestamp, int))
-        return datetime.datetime.fromtimestamp(timestamp, pytz.UTC).strftime('%Y-%m-%d %H:%M:%S %Z')
 
 
 if __name__ == '__main__':

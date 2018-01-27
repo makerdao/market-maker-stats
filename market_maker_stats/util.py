@@ -131,6 +131,11 @@ def iso_8601(tm) -> str:
     return tm.isoformat().replace('+00:00', 'Z')
 
 
+def format_timestamp(timestamp: int):
+    assert(isinstance(timestamp, int))
+    return datetime.datetime.fromtimestamp(timestamp, pytz.UTC).strftime('%Y-%m-%d %H:%M:%S %Z')
+
+
 def rolling_window(a, window):
     shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
     strides = a.strides + (a.strides[-1],)
