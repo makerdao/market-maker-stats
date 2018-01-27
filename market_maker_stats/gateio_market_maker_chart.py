@@ -22,7 +22,7 @@ import sys
 import time
 from typing import List
 
-from market_maker_stats.util import amount_to_size, get_file_prices, Price
+from market_maker_stats.util import amount_to_size, get_file_prices, Price, get_block_timestamp
 from pyexchange.gateio import GateIOApi, Trade
 
 
@@ -90,9 +90,6 @@ class GateIOMarketMakerChart:
         plt.xticks(rotation=25)
         ax=plt.gca()
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
-
-        if len(trades) == 0:
-            ax.set_title('(no trades found)')
 
         if len(prices) > 0:
             timestamps = list(map(self.to_timestamp, prices))

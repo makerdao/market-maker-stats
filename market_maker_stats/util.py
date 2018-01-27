@@ -81,6 +81,10 @@ def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
     return sorted(prices, key=lambda price: price.timestamp)
 
 
+def get_block_timestamp(infura: Web3, block_number):
+    return infura.eth.getBlock(block_number).timestamp
+
+
 def get_event_timestamp(infura: Web3, event):
     return infura.eth.getBlock(event.raw['blockHash']).timestamp
 

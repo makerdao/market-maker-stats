@@ -27,7 +27,7 @@ import requests
 from web3 import Web3, HTTPProvider
 
 from market_maker_stats.radarrelay import radarrelay_trades, Trade
-from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, iso_8601, Price
+from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, iso_8601, Price, get_block_timestamp
 from pymaker import Address
 from pymaker.numeric import Wad
 from pymaker.zrx import ZrxExchange
@@ -68,7 +68,8 @@ class RadarRelayMarketMakerChart:
         past_fills = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
         trades = radarrelay_trades(self.infura, self.market_maker_address, self.sai_address, self.weth_address, past_fills)
 
-        start_timestamp = trades[0].timestamp if len(trades) > 0 else int(time.time() - 3600)
+        start_timestamp = trades[0].timestamp if len(trades) > 0 \
+            else get_block_timestamp(self.infura, self.web3.eth.blockNumber - self.arguments.past_blocks)
         end_timestamp = int(time.time())
         prices = get_gdax_prices(start_timestamp, end_timestamp)
 
@@ -90,9 +91,6 @@ class RadarRelayMarketMakerChart:
         plt.xticks(rotation=25)
         ax=plt.gca()
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
-
-        if len(trades) == 0:
-            ax.set_title('(no trades found in this block range)')
 
         timestamps = list(map(self.convert_timestamp, map(lambda price: price.timestamp, prices)))
         market_prices = list(map(lambda price: price.market_price, prices))

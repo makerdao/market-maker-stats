@@ -22,7 +22,8 @@ import sys
 import time
 from typing import List
 
-from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, Price, amount_to_size, get_file_prices
+from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, Price, amount_to_size, get_file_prices, \
+    get_block_timestamp
 from pyexchange.bibox import BiboxApi, Trade
 
 
@@ -95,9 +96,6 @@ class BiboxMarketMakerChart:
         plt.xticks(rotation=25)
         ax=plt.gca()
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
-
-        if len(trades) == 0:
-            ax.set_title('(no trades found)')
 
         if len(prices) > 0:
             timestamps = list(map(self.to_timestamp, prices))
