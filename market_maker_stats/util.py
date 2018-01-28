@@ -185,12 +185,11 @@ def parse_trades(trades: list):
     return deals, prices, timestamps
 
 
-def calculate_pnl_vwap(trades, prices, timestamps, vwap_minutes: int):
+def calculate_pnl(trades, prices, timestamps, vwaps, vwaps_start):
     # first 3 arguments are output of parse_trades_json
-    vwaps = get_approx_vwaps(timestamps[0], timestamps[-1], vwap_minutes)
     # put timestamps into (forward-looking) minute buckets starting at 0
     # this means we must exclude trades from the last vwap_minutes minutes
-    rel_minutes = np.ceil((timestamps - timestamps[0])/60).astype('int')
+    rel_minutes = np.ceil((timestamps - vwaps_start)/60).astype('int')
     where_overshoot = np.where(rel_minutes >= len(vwaps))[0]
     if where_overshoot.size == 0:
         end = len(rel_minutes)

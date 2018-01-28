@@ -29,7 +29,7 @@ from web3 import Web3, HTTPProvider
 
 import market_maker_stats
 from market_maker_stats.oasis import Trade, oasis_trades
-from market_maker_stats.util import format_timestamp
+from market_maker_stats.util import format_timestamp, get_approx_vwaps
 from pymaker import Address
 from pymaker.oasis import SimpleMarket
 
@@ -74,11 +74,11 @@ class OasisMarketMakerPnl:
         import matplotlib.pyplot as plt
 
         take_events = self.otc.past_take(self.arguments.past_blocks)
-        trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, take_events)
+        all_trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, take_events)
+        vwaps, vwaps_start = get_approx_vwaps(all_trades[0].timestamp, all_trades[-1].timestamp, self.arguments.vwap_minutes), all_trades[0].timestamp
 
-        trades, prices, timestamps = market_maker_stats.util.parse_trades(trades)
-
-        profits = market_maker_stats.util.calculate_pnl_vwap(trades, prices, timestamps, self.arguments.vwap_minutes)
+        trades, prices, timestamps = market_maker_stats.util.parse_trades(all_trades)
+        profits = market_maker_stats.util.calculate_pnl(trades, prices, timestamps, vwaps, vwaps_start)
 
         print("{}".format(np.sum(profits)))
 
