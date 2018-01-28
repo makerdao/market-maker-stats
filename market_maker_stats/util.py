@@ -23,6 +23,7 @@ import pytz
 import requests
 import time
 import numpy as np
+from typing import List
 from web3 import Web3
 
 from pymaker.numeric import Wad
@@ -95,14 +96,14 @@ def get_gdax_prices(start_timestamp: int, end_timestamp: int):
     while timestamp <= end_timestamp:
         timestamp_range_start = timestamp
         timestamp_range_end = int((datetime.datetime.fromtimestamp(timestamp) + datetime.timedelta(hours=3)).timestamp())
-        prices = prices + list(filter(lambda state: state.timestamp >= start_timestamp and state.timestamp <= end_timestamp,
-                                      get_gdax_partial(timestamp_range_start, timestamp_range_end)))
+        prices = prices + get_gdax_partial(timestamp_range_start, timestamp_range_end)
         timestamp = timestamp_range_end
 
+    prices = list(filter(lambda price: start_timestamp <= price.timestamp <= end_timestamp, prices))
     return sorted(prices, key=lambda price: price.timestamp)
 
 
-def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int):
+def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int) -> List[Price]:
     start = datetime.datetime.fromtimestamp(timestamp_range_start, pytz.UTC)
     end = datetime.datetime.fromtimestamp(timestamp_range_end, pytz.UTC)
 
@@ -124,11 +125,13 @@ def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int):
         time.sleep(2)
         return get_gdax_partial(timestamp_range_start, timestamp_range_end)
     else:
-        return list(map(lambda array: Price(timestamp=array[0],
-                                            market_price=(array[1]+array[2])/2,
-                                            market_price_min=array[1],
-                                            market_price_max=array[2],
-                                            volume=array[5]), data))
+        prices = list(map(lambda array: Price(timestamp=array[0],
+                                              market_price=(array[1]+array[2])/2,
+                                              market_price_min=array[1],
+                                              market_price_max=array[2],
+                                              volume=array[5]), data))
+
+        return list(filter(lambda price: timestamp_range_start <= price.timestamp <= timestamp_range_end, prices))
 
 
 def iso_8601(tm) -> str:
