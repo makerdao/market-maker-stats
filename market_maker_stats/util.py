@@ -181,6 +181,18 @@ def parse_trades_json(trades_json: list):
     return trades, prices, timestamps
 
 
+def parse_trades(trades: list):
+    trades = sorted(trades, key=lambda trade: trade.timestamp)
+
+    # assumes the pair is ETH/DAI, so buying is +ETH -DAI
+    # trades is a 2-column array where each row is (delta_ETH, delta_DAI)
+    deals = np.array([(to_direction(not trade.is_sell)*float(trade.amount), to_direction(trade.is_sell)*float(trade.money)) for trade in trades])
+    prices = np.array([float(trade.price) for trade in trades])
+    timestamps = np.array([trade.timestamp for trade in trades])
+
+    return deals, prices, timestamps
+
+
 def calculate_pnl_vwap(trades, prices, timestamps, vwap_minutes=60):
     # first 3 arguments are output of parse_trades_json
     vwaps = get_approx_vwaps(timestamps[0], timestamps[-1], vwap_minutes)
