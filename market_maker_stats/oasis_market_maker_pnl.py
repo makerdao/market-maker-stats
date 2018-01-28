@@ -78,7 +78,7 @@ class OasisMarketMakerPnl:
 
         trades, prices, timestamps = market_maker_stats.util.parse_trades(trades)
 
-        profits = market_maker_stats.util.calculate_pnl_vwap(trades, prices, timestamps, vwap_minutes=240)
+        profits = market_maker_stats.util.calculate_pnl_vwap(trades, prices, timestamps, self.arguments.vwap_minutes)
 
         print("{}".format(np.sum(profits)))
 

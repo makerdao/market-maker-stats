@@ -182,7 +182,7 @@ def parse_trades(trades: list):
     return deals, prices, timestamps
 
 
-def calculate_pnl_vwap(trades, prices, timestamps, vwap_minutes=60):
+def calculate_pnl_vwap(trades, prices, timestamps, vwap_minutes: int):
     # first 3 arguments are output of parse_trades_json
     vwaps = get_approx_vwaps(timestamps[0], timestamps[-1], vwap_minutes)
     # put timestamps into (forward-looking) minute buckets starting at 0
