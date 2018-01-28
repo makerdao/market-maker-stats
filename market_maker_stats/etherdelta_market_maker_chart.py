@@ -65,8 +65,7 @@ class EtherDeltaMarketMakerChart:
         past_trades = self.etherdelta.past_trade(self.arguments.past_blocks, {'get': self.market_maker_address.address})
         trades = etherdelta_trades(self.infura, self.market_maker_address, self.sai_address, self.eth_address, past_trades)
 
-        start_timestamp = trades[0].timestamp if len(trades) > 0 \
-            else get_block_timestamp(self.infura, self.web3.eth.blockNumber - self.arguments.past_blocks)
+        start_timestamp = get_block_timestamp(self.infura, self.web3.eth.blockNumber - self.arguments.past_blocks)
         end_timestamp = int(time.time())
         prices = get_gdax_prices(start_timestamp, end_timestamp)
 

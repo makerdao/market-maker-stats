@@ -68,8 +68,7 @@ class RadarRelayMarketMakerChart:
         past_fills = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
         trades = radarrelay_trades(self.infura, self.market_maker_address, self.sai_address, self.weth_address, past_fills)
 
-        start_timestamp = trades[0].timestamp if len(trades) > 0 \
-            else get_block_timestamp(self.infura, self.web3.eth.blockNumber - self.arguments.past_blocks)
+        start_timestamp = get_block_timestamp(self.infura, self.web3.eth.blockNumber - self.arguments.past_blocks)
         end_timestamp = int(time.time())
         prices = get_gdax_prices(start_timestamp, end_timestamp)
 
