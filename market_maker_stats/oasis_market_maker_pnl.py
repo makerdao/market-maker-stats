@@ -46,6 +46,7 @@ class OasisMarketMakerPnl:
         parser.add_argument("--sai-address", help="Ethereum address of the SAI token", required=True, type=str)
         parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
+        parser.add_argument("--vwap-minutes", help="Rolling VWAP window size (default: 240)", type=int, default=240)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
 
         self.arguments = parser.parse_args(args)

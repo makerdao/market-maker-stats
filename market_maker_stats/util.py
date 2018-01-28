@@ -170,17 +170,6 @@ def to_direction(x):
         return -1.
 
 
-def parse_trades_json(trades_json: list):
-    trades_json = sorted(trades_json, key=lambda trade: trade['timestamp'])
-    # assumes the pair is ETH/DAI, so buying is +ETH -DAI
-    # trades is a 2-column array where each row is (delta_ETH, delta_DAI)
-    trades = np.array([(to_direction(trade['type'] == 'Buy')*trade['amountETH'], to_direction(trade['type'] == 'Sell')*trade['amountDAI']) for trade in trades_json])
-    prices = np.array([trade['price'] for trade in trades_json])
-    timestamps = np.array([trade['timestamp'] for trade in trades_json])
-    
-    return trades, prices, timestamps
-
-
 def parse_trades(trades: list):
     trades = sorted(trades, key=lambda trade: trade.timestamp)
 
