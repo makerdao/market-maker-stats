@@ -48,6 +48,12 @@ class Price:
         self.volume = volume
 
 
+def to_seconds(string: str) -> int:
+    assert(isinstance(string, str))
+    seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
+    return int(string[:-1]) * seconds_per_unit[string[-1]]
+
+
 def amount_to_size(symbol: str, amount: Wad):
     if symbol.upper() == 'DAI':
         amount_in_usd = amount
@@ -203,6 +209,12 @@ def format_timestamp(timestamp: int):
     assert(isinstance(timestamp, int))
     return datetime.datetime.fromtimestamp(timestamp, pytz.UTC).strftime('%Y-%m-%d %H:%M:%S %Z')
 
+
+def timestamp_to_x(timestamp: int):
+    assert(isinstance(timestamp, int))
+
+    from matplotlib.dates import date2num
+    return date2num(datetime.datetime.fromtimestamp(timestamp))
 
 def rolling_window(a, window):
     shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)

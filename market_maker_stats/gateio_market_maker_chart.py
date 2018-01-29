@@ -22,7 +22,8 @@ import sys
 import time
 from typing import List
 
-from market_maker_stats.util import amount_to_size, get_file_prices, Price, get_block_timestamp
+from market_maker_stats.util import amount_to_size, get_file_prices, Price, get_block_timestamp, to_seconds, \
+    timestamp_to_x
 from pyexchange.gateio import GateIOApi, Trade
 
 
@@ -38,6 +39,7 @@ class GateIOMarketMakerChart:
         parser.add_argument("--price-history-file", help="File to use as the price history source", type=str)
         parser.add_argument("--alternative-price-history-file", help="File to use as the alternative price history source", type=str)
         parser.add_argument("--pair", help="Token pair to draw the chart for", required=True, type=str)
+        parser.add_argument("--past", help="Past period of time for which to draw the chart for (e.g. 3d)", required=True, type=str)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
                                                    " Will get displayed on-screen if empty", required=False, type=str)
         self.arguments = parser.parse_args(args)
@@ -55,10 +57,10 @@ class GateIOMarketMakerChart:
         logging.getLogger("filelock").setLevel(logging.WARNING)
 
     def main(self):
-        trades = self.gateio_api.get_trades(self.arguments.pair)
-
-        start_timestamp = min(trades, key=lambda trade: trade.timestamp).timestamp if len(trades) > 0 else int(time.time() - 3600)
+        start_timestamp = int(time.time() - to_seconds(self.arguments.past))
         end_timestamp = int(time.time())
+
+        trades = self.gateio_api.get_trades(self.arguments.pair, from_timestamp=start_timestamp, to_timestamp=end_timestamp)
 
         if self.arguments.price_history_file:
             prices = get_file_prices(self.arguments.price_history_file, start_timestamp, end_timestamp)
@@ -70,12 +72,10 @@ class GateIOMarketMakerChart:
         else:
             alternative_prices = []
 
-        self.draw(prices, alternative_prices, trades)
+        self.draw(start_timestamp, end_timestamp, prices, alternative_prices, trades)
 
     def to_timestamp(self, price_or_trade):
-        from matplotlib.dates import date2num
-
-        return date2num(datetime.datetime.fromtimestamp(price_or_trade.timestamp))
+        return timestamp_to_x(price_or_trade.timestamp)
 
     def to_price(self, trade: Trade):
         return trade.price
@@ -83,13 +83,14 @@ class GateIOMarketMakerChart:
     def to_size(self, trade: Trade):
         return amount_to_size(trade.money_symbol, trade.money)
 
-    def draw(self, prices: List[Price], alternative_prices: List[Price], trades: List[Trade]):
+    def draw(self, start_timestamp: int, end_timestamp: int, prices: List[Price], alternative_prices: List[Price], trades: List[Trade]):
         import matplotlib.dates as md
         import matplotlib.pyplot as plt
 
         plt.subplots_adjust(bottom=0.2)
         plt.xticks(rotation=25)
         ax=plt.gca()
+        ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
         if len(prices) > 0:
