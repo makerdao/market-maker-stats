@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import datetime
 import logging
 import sys
 import time
@@ -26,7 +25,8 @@ from typing import List, Optional
 from web3 import Web3, HTTPProvider
 
 from market_maker_stats.oasis import oasis_trades, Trade
-from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, iso_8601, Price
+from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, iso_8601, Price, get_block_timestamp, \
+    timestamp_to_x
 from pymaker import Address
 from pymaker.numeric import Wad
 from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
@@ -124,14 +124,17 @@ class OasisMarketMakerChart:
 
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
         oasis_states = reduce(reduce_func, event_timestamps, [])
-        gdax_states = self.get_gdax_states(event_timestamps)
+
+        start_timestamp = event_timestamps[0]
+        end_timestamp = int(time.time())
+        gdax_states = self.get_gdax_states(start_timestamp, end_timestamp)
 
         states = sorted(oasis_states + gdax_states, key=lambda state: state.timestamp)
         states = self.consolidate_states(states)
 
         trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, past_take)
 
-        self.draw(states, trades)
+        self.draw(start_timestamp, end_timestamp, states, trades)
 
     def consolidate_states(self, states):
         last_market_price = None
@@ -149,9 +152,7 @@ class OasisMarketMakerChart:
 
         return states
 
-    def get_gdax_states(self, timestamps: List[int]):
-        start_timestamp = timestamps[0]
-        end_timestamp = max(timestamps[-1], int(time.time()))
+    def get_gdax_states(self, start_timestamp: int, end_timestamp: int):
         prices = get_gdax_prices(start_timestamp, end_timestamp)
 
         return list(map(lambda price: State(timestamp=price.timestamp,
@@ -160,24 +161,20 @@ class OasisMarketMakerChart:
                                             sai_address=self.sai_address,
                                             weth_address=self.weth_address), prices))
 
-    def convert_timestamp(self, timestamp):
-        from matplotlib.dates import date2num
-
-        return date2num(datetime.datetime.fromtimestamp(timestamp))
-
     def to_size(self, trade: Trade):
         return amount_in_usd_to_size(trade.money)
 
-    def draw(self, states: List[State], trades: List[Trade]):
+    def draw(self, start_timestamp: int, end_timestamp: int, states: List[State], trades: List[Trade]):
         import matplotlib.dates as md
         import matplotlib.pyplot as plt
 
         plt.subplots_adjust(bottom=0.2)
         plt.xticks(rotation=25)
         ax=plt.gca()
+        ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
-        timestamps = list(map(self.convert_timestamp, map(lambda state: state.timestamp, states)))
+        timestamps = list(map(timestamp_to_x, map(lambda state: state.timestamp, states)))
         closest_sell_prices = list(map(lambda state: state.closest_sell_price(), states))
         closest_buy_prices = list(map(lambda state: state.closest_buy_price(), states))
         market_prices = list(map(lambda state: state.market_price, states))
@@ -187,13 +184,13 @@ class OasisMarketMakerChart:
         plt.plot_date(timestamps, market_prices, 'r-', zorder=1)
 
         sell_trades = list(filter(lambda trade: trade.is_sell, trades))
-        sell_x = list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, sell_trades)))
+        sell_x = list(map(timestamp_to_x, map(lambda trade: trade.timestamp, sell_trades)))
         sell_y = list(map(lambda trade: trade.price, sell_trades))
         sell_s = list(map(self.to_size, sell_trades))
         plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=2)
 
         buy_trades = list(filter(lambda trade: trade.is_buy, trades))
-        buy_x = list(map(self.convert_timestamp, map(lambda trade: trade.timestamp, buy_trades)))
+        buy_x = list(map(timestamp_to_x, map(lambda trade: trade.timestamp, buy_trades)))
         buy_y = list(map(lambda trade: trade.price, buy_trades))
         buy_s = list(map(self.to_size, buy_trades))
         plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=2)
