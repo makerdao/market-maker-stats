@@ -60,6 +60,7 @@ class EtherDeltaMarketMakerChart:
             matplotlib.use('Agg')
 
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
+        logging.getLogger("filelock").setLevel(logging.WARNING)
 
     def main(self):
         past_trades = self.etherdelta.past_trade(self.arguments.past_blocks, {'get': self.market_maker_address.address})

@@ -60,6 +60,7 @@ class OasisMarketMakerTrades:
         self.otc = SimpleMarket(web3=self.web3, address=Address(self.arguments.oasis_address))
 
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
+        logging.getLogger("filelock").setLevel(logging.WARNING)
 
     def token_pair(self):
         return "ETH/DAI"

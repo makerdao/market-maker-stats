@@ -90,6 +90,7 @@ class OasisMarketMakerChart:
             matplotlib.use('Agg')
 
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
+        logging.getLogger("filelock").setLevel(logging.WARNING)
 
     def main(self):
         past_make = self.otc.past_make(self.arguments.past_blocks)

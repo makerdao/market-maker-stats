@@ -53,6 +53,7 @@ class GateIOMarketMakerTrades:
                                     timeout=self.arguments.gateio_timeout)
 
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
+        logging.getLogger("filelock").setLevel(logging.WARNING)
 
     def token_pair(self):
         return self.arguments.pair.replace("_", "/").upper()

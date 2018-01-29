@@ -63,6 +63,7 @@ class RadarRelayMarketMakerChart:
             matplotlib.use('Agg')
 
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
+        logging.getLogger("filelock").setLevel(logging.WARNING)
 
     def main(self):
         past_fills = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})

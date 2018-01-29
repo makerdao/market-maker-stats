@@ -55,6 +55,7 @@ class BiboxMarketMakerChart:
             matplotlib.use('Agg')
 
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
+        logging.getLogger("filelock").setLevel(logging.WARNING)
 
     def main(self):
         trades = self.bibox_api.get_trades(pair=self.arguments.pair,

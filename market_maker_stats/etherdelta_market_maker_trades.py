@@ -61,6 +61,7 @@ class EtherDeltaMarketMakerTrades:
         self.etherdelta = EtherDelta(web3=self.web3, address=Address(self.arguments.etherdelta_address))
 
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
+        logging.getLogger("filelock").setLevel(logging.WARNING)
 
     def token_pair(self):
         return "ETH/DAI"
