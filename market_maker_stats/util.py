@@ -19,11 +19,17 @@ import datetime
 import json
 import logging
 
+import errno
+
+import filelock
 import pytz
 import requests
+import os
 import time
 import numpy as np
 from typing import List
+
+from appdirs import user_cache_dir
 from web3 import Web3
 
 from pymaker.numeric import Wad
@@ -90,12 +96,24 @@ def get_event_timestamp(infura: Web3, event):
     return infura.eth.getBlock(event.raw['blockHash']).timestamp
 
 
+def cache_folder():
+    db_folder = user_cache_dir("market-maker-stats", "maker")
+
+    try:
+        os.makedirs(db_folder)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
+    return db_folder
+
+
 def get_gdax_prices(start_timestamp: int, end_timestamp: int):
     prices = []
-    timestamp = start_timestamp
+    timestamp = gdax_batch_begin(start_timestamp)
     while timestamp <= end_timestamp:
         timestamp_range_start = timestamp
-        timestamp_range_end = int((datetime.datetime.fromtimestamp(timestamp) + datetime.timedelta(hours=4)).timestamp())
+        timestamp_range_end = gdax_batch_end(timestamp)
         prices = prices + get_gdax_partial(timestamp_range_start, timestamp_range_end)
         timestamp = timestamp_range_end
 
@@ -103,35 +121,78 @@ def get_gdax_prices(start_timestamp: int, end_timestamp: int):
     return sorted(prices, key=lambda price: price.timestamp)
 
 
-def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int) -> List[Price]:
-    start = datetime.datetime.fromtimestamp(timestamp_range_start, pytz.UTC)
-    end = datetime.datetime.fromtimestamp(timestamp_range_end, pytz.UTC)
+def gdax_batch_begin(start_timestamp):
+    return int(datetime.datetime.fromtimestamp(start_timestamp).replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
 
-    url = f"https://api.gdax.com/products/ETH-USD/candles?" \
-          f"start={iso_8601(start)}&" \
-          f"end={iso_8601(end)}&" \
-          f"granularity=60"
 
-    # data is: [[ time, low, high, open, close, volume ], [...]]
+def gdax_batch_end(batch_begin):
+    # TODO what about leap seconds...?
+    return int((datetime.datetime.fromtimestamp(batch_begin) + datetime.timedelta(hours=4)).timestamp())
+
+
+def gdax_fetch(url):
     try:
         data = requests.get(url).json()
     except:
         logging.info("GDAX API network error, waiting 10 secs...")
         time.sleep(10)
-        return get_gdax_partial(timestamp_range_start, timestamp_range_end)
+        return gdax_fetch(url)
 
     if 'message' in data:
         logging.info("GDAX API rate limiting, slowing down for 2 secs...")
         time.sleep(2)
-        return get_gdax_partial(timestamp_range_start, timestamp_range_end)
-    else:
-        prices = list(map(lambda array: Price(timestamp=array[0],
-                                              market_price=(array[1]+array[2])/2,
-                                              market_price_min=array[1],
-                                              market_price_max=array[2],
-                                              volume=array[5]), data))
+        return gdax_fetch(url)
 
-        return list(filter(lambda price: timestamp_range_start <= price.timestamp <= timestamp_range_end, prices))
+    return data
+
+
+def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int) -> List[Price]:
+    assert(isinstance(timestamp_range_start, int))
+    assert(isinstance(timestamp_range_end, int))
+
+    # We only cache batches if their end timestamp is at least one hour in the past.
+    # There is no good reason for choosing exactly one hour as the cutoff time.
+    can_cache = timestamp_range_end < int(time.time()) - 3600
+    cache_file = os.path.join(cache_folder(), f'gdax_ETH-USD_{timestamp_range_start}_{timestamp_range_end}_60.json')
+
+    start = datetime.datetime.fromtimestamp(timestamp_range_start, pytz.UTC)
+    end = datetime.datetime.fromtimestamp(timestamp_range_end, pytz.UTC)
+    url = f"https://api.gdax.com/products/ETH-USD/candles?" \
+          f"start={iso_8601(start)}&" \
+          f"end={iso_8601(end)}&" \
+          f"granularity=60"
+
+    # Try do get data from cache
+    data_from_cache = None
+    if can_cache:
+        with filelock.FileLock(cache_file + ".lock"):
+            try:
+                if os.path.isfile(cache_file):
+                    with open(cache_file, 'r') as infile:
+                        data_from_cache = json.load(infile)
+            except:
+                pass
+
+    if data_from_cache is None:
+        data_from_server = gdax_fetch(url)
+
+        if can_cache:
+            with filelock.FileLock(cache_file + ".lock"):
+                try:
+                    with open(cache_file, 'w') as outfile:
+                        json.dump(data_from_server, outfile)
+                except:
+                    pass
+
+    # data is: [[ time, low, high, open, close, volume ], [...]]
+    data = data_from_cache if data_from_cache is not None else data_from_server
+    prices = list(map(lambda array: Price(timestamp=array[0],
+                                          market_price=(array[1]+array[2])/2,
+                                          market_price_min=array[1],
+                                          market_price_max=array[2],
+                                          volume=array[5]), data))
+
+    return list(filter(lambda price: timestamp_range_start <= price.timestamp <= timestamp_range_end, prices))
 
 
 def iso_8601(tm) -> str:
