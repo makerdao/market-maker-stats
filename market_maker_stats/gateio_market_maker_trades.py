@@ -65,7 +65,7 @@ class GateIOMarketMakerTrades:
         return self.arguments.pair.split('_')[1].upper()
 
     def main(self):
-        trades = self.gateio_api.get_trades(self.arguments.pair, use_cache=True)
+        trades = self.gateio_api.get_trades(self.arguments.pair)
 
         if self.arguments.text:
             self.text_trades(trades)
