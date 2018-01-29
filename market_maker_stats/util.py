@@ -95,7 +95,7 @@ def get_gdax_prices(start_timestamp: int, end_timestamp: int):
     timestamp = start_timestamp
     while timestamp <= end_timestamp:
         timestamp_range_start = timestamp
-        timestamp_range_end = int((datetime.datetime.fromtimestamp(timestamp) + datetime.timedelta(hours=3)).timestamp())
+        timestamp_range_end = int((datetime.datetime.fromtimestamp(timestamp) + datetime.timedelta(hours=4)).timestamp())
         prices = prices + get_gdax_partial(timestamp_range_start, timestamp_range_end)
         timestamp = timestamp_range_end
 
