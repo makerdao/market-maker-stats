@@ -39,7 +39,6 @@ class BiboxMarketMakerTrades:
         parser.add_argument("--bibox-timeout", help="Timeout for accessing the Bibox API", default=9.5, type=float)
         parser.add_argument("--bibox-retry-count", help="Retry count for accessing the Bibox API (default: 20)", default=20, type=int)
         parser.add_argument("--pair", help="Token pair to get the past trades for", required=True, type=str)
-        parser.add_argument("--past-trades", help="Number of past trades to fetch and show", required=True, type=int)
 
         parser_mode = parser.add_mutually_exclusive_group(required=True)
         parser_mode.add_argument('--text', help="List trades as a text table", dest='text', action='store_true')
@@ -66,7 +65,6 @@ class BiboxMarketMakerTrades:
 
     def main(self):
         trades = self.bibox_api.get_trades(pair=self.arguments.pair,
-                                           number_of_trades=self.arguments.past_trades,
                                            retry=True,
                                            retry_count=self.arguments.bibox_retry_count)
 
