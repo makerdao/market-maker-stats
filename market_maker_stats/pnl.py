@@ -69,6 +69,9 @@ def prepare_trades_for_pnl(trades: list):
 
 
 def calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start):
+    if len(pnl_trades) == 0:
+        return np.array([])
+
     # first 3 arguments are output of parse_trades_json
     # put timestamps into (forward-looking) minute buckets starting at 0
     # this means we must exclude trades from the last vwap_minutes minutes
