@@ -85,9 +85,9 @@ class OasisMarketMakerPnl:
         vwaps_start = start_timestamp
 
         pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(trades)
-        profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
+        pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
 
-        print("{}".format(np.sum(profits)))
+        print("{}".format(np.sum(pnl_profits)))
 
         fig, ax = plt.subplots()
         ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
@@ -99,7 +99,7 @@ class OasisMarketMakerPnl:
 
         dt_timestamps = [datetime.datetime.fromtimestamp(timestamp) for timestamp in pnl_timestamps]
 
-        ax.plot(dt_timestamps[:len(profits)], np.cumsum(profits), color='green')
+        ax.plot(dt_timestamps[:len(pnl_profits)], np.cumsum(pnl_profits), color='green')
         ax2.plot(list(map(lambda price: timestamp_to_x(price.timestamp), prices)),
                  list(map(lambda price: price.market_price, prices)), color='red')
 
