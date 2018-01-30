@@ -250,7 +250,7 @@ def to_direction(x):
         return -1.
 
 
-def parse_trades(trades: list):
+def prepare_trades_for_pnl(trades: list):
     trades = sorted(trades, key=lambda trade: trade.timestamp)
 
     # assumes the pair is ETH/DAI, so buying is +ETH -DAI
@@ -262,11 +262,11 @@ def parse_trades(trades: list):
     return deals, prices, timestamps
 
 
-def calculate_pnl(trades, prices, timestamps, vwaps, vwaps_start):
+def calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start):
     # first 3 arguments are output of parse_trades_json
     # put timestamps into (forward-looking) minute buckets starting at 0
     # this means we must exclude trades from the last vwap_minutes minutes
-    rel_minutes = np.ceil((timestamps - vwaps_start)/60).astype('int')
+    rel_minutes = np.ceil((pnl_timestamps - vwaps_start) / 60).astype('int')
     where_overshoot = np.where(rel_minutes >= len(vwaps))[0]
     if where_overshoot.size == 0:
         end = len(rel_minutes)
@@ -274,7 +274,7 @@ def calculate_pnl(trades, prices, timestamps, vwaps, vwaps_start):
         end = where_overshoot[0]
     
     trade_market_vwaps = vwaps[rel_minutes[:end]]
-    profits = (trade_market_vwaps - prices[:end])*trades[:, 0][:end]
+    profits = (trade_market_vwaps - pnl_prices[:end]) * pnl_trades[:, 0][:end]
 
     # profits for each trade in period from timestamps[0] to timestamps[end_row-1]
     # use np.sum(profits) to get total PnL over period

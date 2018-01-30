@@ -17,19 +17,16 @@
 
 import argparse
 import datetime
-import json
 import logging
 import sys
-from typing import List
+import time
 
 import numpy as np
-import pytz
-from texttable import Texttable
 from web3 import Web3, HTTPProvider
 
 import market_maker_stats
-from market_maker_stats.oasis import Trade, oasis_trades
-from market_maker_stats.util import format_timestamp, get_approx_vwaps, get_gdax_prices
+from market_maker_stats.oasis import oasis_trades
+from market_maker_stats.util import format_timestamp, get_approx_vwaps, get_gdax_prices, timestamp_to_x
 from pymaker import Address
 from pymaker.oasis import SimpleMarket
 
@@ -48,6 +45,10 @@ class OasisMarketMakerPnl:
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--vwap-minutes", help="Rolling VWAP window size (default: 240)", type=int, default=240)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
+
+        parser_mode = parser.add_mutually_exclusive_group(required=True)
+        parser_mode.add_argument('--text', help="Show PnL as a text table", dest='text', action='store_true')
+        parser_mode.add_argument('--chart', help="Show PnL on a cumulative graph", dest='chart', action='store_true')
 
         self.arguments = parser.parse_args(args)
 
@@ -70,32 +71,34 @@ class OasisMarketMakerPnl:
     def quote_token(self):
         return "DAI"
 
-    def convert_timestamp(self, timestamp):
-        from matplotlib.dates import date2num
-
-        return date2num(datetime.datetime.fromtimestamp(timestamp))
-
     def main(self):
-        import matplotlib
+        import matplotlib.dates as md
         import matplotlib.pyplot as plt
 
-        take_events = self.otc.past_take(self.arguments.past_blocks)
-        all_trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, take_events)
-        all_prices, vwaps_start = get_gdax_prices(all_trades[0].timestamp, all_trades[-1].timestamp), all_trades[0].timestamp
-        vwaps = get_approx_vwaps(all_prices, self.arguments.vwap_minutes)
+        events = self.otc.past_take(self.arguments.past_blocks)
+        trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, events)
+        start_timestamp = trades[0].timestamp
+        end_timestamp = int(time.time())
 
-        trades, prices, timestamps = market_maker_stats.util.parse_trades(all_trades)
-        profits = market_maker_stats.util.calculate_pnl(trades, prices, timestamps, vwaps, vwaps_start)
+        prices = get_gdax_prices(start_timestamp, end_timestamp)
+        vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
+        vwaps_start = start_timestamp
+
+        pnl_trades, pnl_prices, pnl_timestamps = market_maker_stats.util.prepare_trades_for_pnl(trades)
+        profits = market_maker_stats.util.calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
 
         print("{}".format(np.sum(profits)))
 
         fig, ax = plt.subplots()
+        ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
+        ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
         ax2 = ax.twinx()
 
-        dt_timestamps = [datetime.datetime.fromtimestamp(timestamp) for timestamp in timestamps]
+        dt_timestamps = [datetime.datetime.fromtimestamp(timestamp) for timestamp in pnl_timestamps]
 
         ax.plot(dt_timestamps[:len(profits)], np.cumsum(profits), color='green')
-        ax2.plot(list(map(lambda price: self.convert_timestamp(price.timestamp), all_prices)), list(map(lambda price: price.market_price, all_prices)), color='red')
+        ax2.plot(list(map(lambda price: timestamp_to_x(price.timestamp), prices)),
+                 list(map(lambda price: price.market_price, prices)), color='red')
 
         ax.set_ylabel('Cumulative PnL ($)')
         ax2.set_ylabel('ETH/USD price ($)')
