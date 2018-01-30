@@ -397,8 +397,7 @@ usage: bibox-market-maker-trades [-h] [--bibox-api-server BIBOX_API_SERVER]
                                  --bibox-api-key BIBOX_API_KEY --bibox-secret
                                  BIBOX_SECRET [--bibox-timeout BIBOX_TIMEOUT]
                                  [--bibox-retry-count BIBOX_RETRY_COUNT]
-                                 --pair PAIR --past-trades PAST_TRADES
-                                 (--text | --json)
+                                 --pair PAIR --past PAST (--text | --json)
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -414,8 +413,8 @@ optional arguments:
   --bibox-retry-count BIBOX_RETRY_COUNT
                         Retry count for accessing the Bibox API (default: 20)
   --pair PAIR           Token pair to get the past trades for
-  --past-trades PAST_TRADES
-                        Number of past trades to fetch and show
+  --past PAST           Past period of time for which to get the trades for
+                        (e.g. 3d)
   --text                List trades as a text table
   --json                List trades as a JSON document
 ```
@@ -480,7 +479,7 @@ usage: gateio-market-maker-trades [-h] [--gateio-api-server GATEIO_API_SERVER]
                                   --gateio-api-key GATEIO_API_KEY
                                   --gateio-secret-key GATEIO_SECRET_KEY
                                   [--gateio-timeout GATEIO_TIMEOUT] --pair
-                                  PAIR (--text | --json)
+                                  PAIR --past PAST (--text | --json)
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -495,6 +494,8 @@ optional arguments:
                         Timeout for accessing the Gate.io API (in seconds,
                         default: 9.5)
   --pair PAIR           Token pair to get the past trades for
+  --past PAST           Past period of time for which to get the trades for
+                        (e.g. 3d)
   --text                List trades as a text table
   --json                List trades as a JSON document
 ```
