@@ -94,6 +94,9 @@ class OasisMarketMakerPnl:
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
         ax2 = ax.twinx()
 
+        ax.set_zorder(ax2.get_zorder()+1)
+        ax.patch.set_visible(False)
+
         dt_timestamps = [datetime.datetime.fromtimestamp(timestamp) for timestamp in pnl_timestamps]
 
         ax.plot(dt_timestamps[:len(profits)], np.cumsum(profits), color='green')
