@@ -26,7 +26,7 @@ from typing import List
 import pytz
 from texttable import Texttable
 
-from market_maker_stats.util import format_timestamp, to_seconds
+from market_maker_stats.util import format_timestamp, to_seconds, sort_trades
 from pyexchange.bibox import BiboxApi, Trade
 from pyexchange.gateio import GateIOApi
 
@@ -69,6 +69,7 @@ class GateIOMarketMakerTrades:
     def main(self):
         start_timestamp = int(time.time() - to_seconds(self.arguments.past))
         trades = self.gateio_api.get_trades(self.arguments.pair, from_timestamp=start_timestamp)
+        trades = sort_trades(trades)
 
         if self.arguments.text:
             self.text_trades(trades)

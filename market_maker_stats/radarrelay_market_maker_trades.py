@@ -27,7 +27,7 @@ from texttable import Texttable
 from web3 import Web3, HTTPProvider
 
 from market_maker_stats.radarrelay import radarrelay_trades, Trade
-from market_maker_stats.util import format_timestamp
+from market_maker_stats.util import format_timestamp, sort_trades
 from pymaker import Address
 from pymaker.zrx import ZrxExchange
 
@@ -77,6 +77,7 @@ class RadarRelayMarketMakerTrades:
     def main(self):
         past_fills = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
         trades = radarrelay_trades(self.infura, self.market_maker_address, self.sai_address, self.weth_address, past_fills)
+        trades = sort_trades(trades)
 
         if self.arguments.text:
             self.text_trades(trades)

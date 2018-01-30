@@ -216,6 +216,11 @@ def timestamp_to_x(timestamp: int):
     from matplotlib.dates import date2num
     return date2num(datetime.datetime.fromtimestamp(timestamp))
 
+
+def sort_trades(trades: list) -> list:
+    return sorted(trades, key=lambda trade: trade.timestamp, reverse=True)
+
+
 def rolling_window(a, window):
     shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
     strides = a.strides + (a.strides[-1],)

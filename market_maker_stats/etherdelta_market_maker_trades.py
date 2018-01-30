@@ -27,7 +27,7 @@ from texttable import Texttable
 from web3 import Web3, HTTPProvider
 
 from market_maker_stats.etherdelta import etherdelta_trades, Trade
-from market_maker_stats.util import format_timestamp
+from market_maker_stats.util import format_timestamp, sort_trades
 from pymaker import Address
 from pymaker.etherdelta import EtherDelta
 
@@ -75,6 +75,7 @@ class EtherDeltaMarketMakerTrades:
     def main(self):
         past_trades = self.etherdelta.past_trade(self.arguments.past_blocks, {'get': self.market_maker_address.address})
         trades = etherdelta_trades(self.infura, self.market_maker_address, self.sai_address, self.eth_address, past_trades)
+        trades = sort_trades(trades)
 
         if self.arguments.text:
             self.text_trades(trades)
