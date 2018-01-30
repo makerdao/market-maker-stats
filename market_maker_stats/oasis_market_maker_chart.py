@@ -80,6 +80,7 @@ class OasisMarketMakerChart:
 
         self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}",
                                       request_kwargs={'timeout': self.arguments.rpc_timeout}))
+        self.infura = Web3(HTTPProvider(endpoint_uri=f"https://mainnet.infura.io/", request_kwargs={'timeout': 120}))
         self.sai_address = Address(self.arguments.sai_address)
         self.weth_address = Address(self.arguments.weth_address)
         self.market_maker_address = Address(self.arguments.market_maker_address)
@@ -93,6 +94,9 @@ class OasisMarketMakerChart:
         logging.getLogger("filelock").setLevel(logging.WARNING)
 
     def main(self):
+        start_timestamp = get_block_timestamp(self.infura, self.web3.eth.blockNumber - self.arguments.past_blocks)
+        end_timestamp = int(time.time())
+
         past_make = self.otc.past_make(self.arguments.past_blocks)
         past_take = self.otc.past_take(self.arguments.past_blocks)
         past_kill = self.otc.past_kill(self.arguments.past_blocks)
@@ -124,9 +128,6 @@ class OasisMarketMakerChart:
 
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
         oasis_states = reduce(reduce_func, event_timestamps, [])
-
-        start_timestamp = event_timestamps[0]
-        end_timestamp = int(time.time())
         gdax_states = self.get_gdax_states(start_timestamp, end_timestamp)
 
         states = sorted(oasis_states + gdax_states, key=lambda state: state.timestamp)

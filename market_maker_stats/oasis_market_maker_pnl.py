@@ -24,7 +24,7 @@ from web3 import Web3, HTTPProvider
 
 from market_maker_stats.oasis import oasis_trades
 from market_maker_stats.pnl import get_approx_vwaps, pnl_text, pnl_chart
-from market_maker_stats.util import get_gdax_prices, sort_trades_for_pnl
+from market_maker_stats.util import get_gdax_prices, sort_trades_for_pnl, get_block_timestamp
 from pymaker import Address
 from pymaker.oasis import SimpleMarket
 
@@ -54,6 +54,7 @@ class OasisMarketMakerPnl:
 
         self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}",
                                       request_kwargs={'timeout': self.arguments.rpc_timeout}))
+        self.infura = Web3(HTTPProvider(endpoint_uri=f"https://mainnet.infura.io/", request_kwargs={'timeout': 120}))
         self.sai_address = Address(self.arguments.sai_address)
         self.weth_address = Address(self.arguments.weth_address)
         self.market_maker_address = Address(self.arguments.market_maker_address)
@@ -67,11 +68,12 @@ class OasisMarketMakerPnl:
         logging.getLogger("filelock").setLevel(logging.WARNING)
 
     def main(self):
+        start_timestamp = get_block_timestamp(self.infura, self.web3.eth.blockNumber - self.arguments.past_blocks)
+        end_timestamp = int(time.time())
+
         events = self.otc.past_take(self.arguments.past_blocks)
         trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, events)
         trades = sort_trades_for_pnl(trades)
-        start_timestamp = trades[0].timestamp
-        end_timestamp = int(time.time())
 
         prices = get_gdax_prices(start_timestamp, end_timestamp)
         vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
