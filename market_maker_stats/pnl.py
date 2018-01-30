@@ -15,7 +15,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
+from itertools import groupby
+
 import numpy as np
+import pytz
+from texttable import Texttable
+from typing import List, Optional
+
+from market_maker_stats.util import get_day, sum_wads, Price, timestamp_to_x
+from pymaker import Wad
 
 
 def rolling_window(a, window):
@@ -77,3 +86,82 @@ def calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start):
     # use np.sum(profits) to get total PnL over period
     # and np.cumsum(profits) to get cumulative PnLs over period, for plotting
     return profits
+
+
+def pnl_text(trades: list, vwaps: list, vwaps_start: int):
+    data = []
+    total_dai_net = Wad(0)
+    total_profit = 0
+    for day, day_trades in groupby(trades, lambda trade: get_day(trade.timestamp)):
+        day_trades = list(day_trades)
+
+        pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(day_trades)
+        pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
+
+        day_dai_bought = sum_wads(map(lambda trade: trade.money, filter(lambda trade: not trade.is_sell, day_trades)))
+        day_dai_sold = sum_wads(map(lambda trade: trade.money, filter(lambda trade: trade.is_sell, day_trades)))
+        day_dai_net = day_dai_bought - day_dai_sold
+        day_profit = np.sum(pnl_profits)
+
+        total_dai_net += day_dai_net
+        total_profit += day_profit
+
+        data.append([day.strftime('%Y-%m-%d'),
+                     len(day_trades),
+                     "{:,.2f} DAI".format(float(day_dai_bought)),
+                     "{:,.2f} DAI".format(float(day_dai_sold)),
+                     "{:,.2f} DAI".format(float(day_dai_net)),
+                     "{:,.2f} DAI".format(float(total_dai_net)),
+                     "{:,.2f} USD".format(day_profit)])
+
+    table = Texttable(max_width=250)
+    table.set_deco(Texttable.HEADER)
+    table.set_cols_dtype(['t', 't', 't', 't', 't', 't', 't'])
+    table.set_cols_align(['l', 'r', 'r', 'r', 'r', 'r', 'r'])
+    table.set_cols_width([11, 15, 20, 18, 30, 20, 25])
+    table.add_rows([["Day", "# transactions", "Bought", "Sold", "Net bought", "Cumulative net bought", "Profit"]] + data)
+
+    print(f"")
+    print(f"PnL report for market-making on the ETH/DAI pair:")
+    print(f"")
+    print(table.draw())
+    print(f"")
+    print(f"The first and the last day of the report may not contain all trades.")
+    print(f"As a rolling VWAP window is used, last window of trades is excluded from profit calculation.")
+    print(f"")
+    print(f"Number of trades: {len(trades)}")
+    print(f"Total profit: " + "{:,.2f} USD".format(total_profit))
+    print(f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}")
+
+
+def pnl_chart(start_timestamp: int, end_timestamp: int, prices: List[Price], trades: list, vwaps: list, vwaps_start: int, output: Optional[str]):
+    import matplotlib.dates as md
+    import matplotlib.pyplot as plt
+
+    pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(trades)
+    pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
+
+    fig, ax = plt.subplots()
+    ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
+    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
+    plt.subplots_adjust(bottom=0.2)
+    plt.xticks(rotation=25)
+    ax2 = ax.twinx()
+
+    ax.set_zorder(ax2.get_zorder()+1)
+    ax.patch.set_visible(False)
+
+    dt_timestamps = [datetime.datetime.fromtimestamp(timestamp) for timestamp in pnl_timestamps]
+    ax.plot(dt_timestamps[:len(pnl_profits)], np.cumsum(pnl_profits), color='green')
+
+    ax2.plot(list(map(lambda price: timestamp_to_x(price.timestamp), prices)),
+             list(map(lambda price: price.market_price, prices)), color='red')
+
+    ax.set_ylabel('Cumulative PnL ($)')
+    ax2.set_ylabel('ETH/USD price ($)')
+    plt.title("Profit: {:,.2f} USD".format(np.sum(pnl_profits)))
+
+    if output:
+        plt.savefig(fname=output, dpi=300, bbox_inches='tight', pad_inches=0)
+    else:
+        plt.show()

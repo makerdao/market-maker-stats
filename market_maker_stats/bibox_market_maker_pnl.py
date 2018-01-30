@@ -20,29 +20,24 @@ import logging
 import sys
 import time
 
-from web3 import Web3, HTTPProvider
-
-from market_maker_stats.oasis import oasis_trades
 from market_maker_stats.pnl import get_approx_vwaps, pnl_text, pnl_chart
-from market_maker_stats.util import get_gdax_prices, sort_trades_for_pnl
-from pymaker import Address
-from pymaker.oasis import SimpleMarket
+from market_maker_stats.util import to_seconds, get_gdax_prices, sort_trades_for_pnl
+from pyexchange.bibox import BiboxApi
 
 
-class OasisMarketMakerPnl:
-    """Tool to calculate profitability for the OasisDEX market maker keeper."""
+class BiboxMarketMakerPnl:
+    """Tool to calculate profitability for the Bibox market maker keeper."""
 
     def __init__(self, args: list):
-        parser = argparse.ArgumentParser(prog='oasis-market-maker-pnl')
-        parser.add_argument("--rpc-host", help="JSON-RPC host (default: `localhost')", default="localhost", type=str)
-        parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
-        parser.add_argument("--rpc-timeout", help="JSON-RPC timeout (in seconds, default: 60)", type=int, default=60)
-        parser.add_argument("--oasis-address", help="Ethereum address of the OasisDEX contract", required=True, type=str)
-        parser.add_argument("--sai-address", help="Ethereum address of the SAI token", required=True, type=str)
-        parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
-        parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
+        parser = argparse.ArgumentParser(prog='bibox-market-maker-pnl')
+        parser.add_argument("--bibox-api-server", help="Address of the Bibox API server (default: 'https://api.bibox.com')", default="https://api.bibox.com", type=str)
+        parser.add_argument("--bibox-api-key", help="API key for the Bibox API", required=True, type=str)
+        parser.add_argument("--bibox-secret", help="Secret for the Bibox API", required=True, type=str)
+        parser.add_argument("--bibox-timeout", help="Timeout for accessing the Bibox API", default=9.5, type=float)
+        parser.add_argument("--bibox-retry-count", help="Retry count for accessing the Bibox API (default: 20)", default=20, type=int)
         parser.add_argument("--vwap-minutes", help="Rolling VWAP window size (default: 240)", type=int, default=240)
-        parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
+        parser.add_argument("--pair", help="Token pair to get the past trades for", required=True, type=str)
+        parser.add_argument("--past", help="Past period of time for which to get the trades for (e.g. 3d)", required=True, type=str)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
                                                    " Will get displayed on-screen if empty", required=False, type=str)
 
@@ -52,12 +47,10 @@ class OasisMarketMakerPnl:
 
         self.arguments = parser.parse_args(args)
 
-        self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}",
-                                      request_kwargs={'timeout': self.arguments.rpc_timeout}))
-        self.sai_address = Address(self.arguments.sai_address)
-        self.weth_address = Address(self.arguments.weth_address)
-        self.market_maker_address = Address(self.arguments.market_maker_address)
-        self.otc = SimpleMarket(web3=self.web3, address=Address(self.arguments.oasis_address))
+        self.bibox_api = BiboxApi(api_server=self.arguments.bibox_api_server,
+                                  api_key=self.arguments.bibox_api_key,
+                                  secret=self.arguments.bibox_secret,
+                                  timeout=self.arguments.bibox_timeout)
 
         if self.arguments.chart and self.arguments.output:
             import matplotlib
@@ -67,11 +60,10 @@ class OasisMarketMakerPnl:
         logging.getLogger("filelock").setLevel(logging.WARNING)
 
     def main(self):
-        events = self.otc.past_take(self.arguments.past_blocks)
-        trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, events)
-        trades = sort_trades_for_pnl(trades)
-        start_timestamp = trades[0].timestamp
+        start_timestamp = int(time.time() - to_seconds(self.arguments.past))
         end_timestamp = int(time.time())
+        trades = self.bibox_api.get_trades(self.arguments.pair, True, self.arguments.bibox_retry_count, from_timestamp=start_timestamp)
+        trades = sort_trades_for_pnl(trades)
 
         prices = get_gdax_prices(start_timestamp, end_timestamp)
         vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
@@ -85,4 +77,4 @@ class OasisMarketMakerPnl:
 
 
 if __name__ == '__main__':
-    OasisMarketMakerPnl(sys.argv[1:]).main()
+    BiboxMarketMakerPnl(sys.argv[1:]).main()

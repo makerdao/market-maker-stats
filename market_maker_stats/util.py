@@ -229,5 +229,9 @@ def sort_trades(trades: list) -> list:
     return sorted(trades, key=lambda trade: trade.timestamp, reverse=True)
 
 
+def sort_trades_for_pnl(trades: list) -> list:
+    return sorted(trades, key=lambda trade: trade.timestamp)
+
+
 def sum_wads(iterable):
     return reduce(lambda x, y: x + y, iterable, Wad(0))
