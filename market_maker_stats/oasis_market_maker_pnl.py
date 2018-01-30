@@ -87,11 +87,11 @@ class OasisMarketMakerPnl:
         pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(trades)
         pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
 
-        print("{}".format(np.sum(pnl_profits)))
-
         fig, ax = plt.subplots()
         ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
+        plt.subplots_adjust(bottom=0.2)
+        plt.xticks(rotation=25)
         ax2 = ax.twinx()
 
         ax.set_zorder(ax2.get_zorder()+1)
@@ -105,6 +105,7 @@ class OasisMarketMakerPnl:
 
         ax.set_ylabel('Cumulative PnL ($)')
         ax2.set_ylabel('ETH/USD price ($)')
+        plt.title("Profit: {:0.2f} USD".format(np.sum(pnl_profits)))
         plt.show()
 
 
