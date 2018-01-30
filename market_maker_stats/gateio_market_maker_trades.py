@@ -20,12 +20,13 @@ import datetime
 import json
 import logging
 import sys
+import time
 from typing import List
 
 import pytz
 from texttable import Texttable
 
-from market_maker_stats.util import format_timestamp
+from market_maker_stats.util import format_timestamp, to_seconds
 from pyexchange.bibox import BiboxApi, Trade
 from pyexchange.gateio import GateIOApi
 
@@ -40,6 +41,7 @@ class GateIOMarketMakerTrades:
         parser.add_argument("--gateio-secret-key", help="Secret key for the Gate.io API", required=True, type=str)
         parser.add_argument("--gateio-timeout", help="Timeout for accessing the Gate.io API (in seconds, default: 9.5)", default=9.5, type=float)
         parser.add_argument("--pair", help="Token pair to get the past trades for", required=True, type=str)
+        parser.add_argument("--past", help="Past period of time for which to get the trades for (e.g. 3d)", required=True, type=str)
 
         parser_mode = parser.add_mutually_exclusive_group(required=True)
         parser_mode.add_argument('--text', help="List trades as a text table", dest='text', action='store_true')
@@ -65,7 +67,8 @@ class GateIOMarketMakerTrades:
         return self.arguments.pair.split('_')[1].upper()
 
     def main(self):
-        trades = self.gateio_api.get_trades(self.arguments.pair)
+        start_timestamp = int(time.time() - to_seconds(self.arguments.past))
+        trades = self.gateio_api.get_trades(self.arguments.pair, from_timestamp=start_timestamp)
 
         if self.arguments.text:
             self.text_trades(trades)

@@ -20,11 +20,13 @@ import datetime
 import json
 import logging
 import sys
+import time
 from typing import List
 
 import pytz
 from texttable import Texttable
 
+from market_maker_stats.util import to_seconds
 from pyexchange.bibox import BiboxApi, Trade
 
 
@@ -39,6 +41,7 @@ class BiboxMarketMakerTrades:
         parser.add_argument("--bibox-timeout", help="Timeout for accessing the Bibox API", default=9.5, type=float)
         parser.add_argument("--bibox-retry-count", help="Retry count for accessing the Bibox API (default: 20)", default=20, type=int)
         parser.add_argument("--pair", help="Token pair to get the past trades for", required=True, type=str)
+        parser.add_argument("--past", help="Past period of time for which to get the trades for (e.g. 3d)", required=True, type=str)
 
         parser_mode = parser.add_mutually_exclusive_group(required=True)
         parser_mode.add_argument('--text', help="List trades as a text table", dest='text', action='store_true')
@@ -64,9 +67,9 @@ class BiboxMarketMakerTrades:
         return self.arguments.pair.split('_')[1].upper()
 
     def main(self):
-        trades = self.bibox_api.get_trades(pair=self.arguments.pair,
-                                           retry=True,
-                                           retry_count=self.arguments.bibox_retry_count)
+        start_timestamp = int(time.time() - to_seconds(self.arguments.past))
+        trades = self.bibox_api.get_trades(self.arguments.pair, True, self.arguments.bibox_retry_count,
+                                           from_timestamp=start_timestamp)
 
         if self.arguments.text:
             self.text_trades(trades)
