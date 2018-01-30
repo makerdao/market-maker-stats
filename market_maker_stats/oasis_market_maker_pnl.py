@@ -50,6 +50,8 @@ class OasisMarketMakerPnl:
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--vwap-minutes", help="Rolling VWAP window size (default: 240)", type=int, default=240)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
+        parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
+                                                   " Will get displayed on-screen if empty", required=False, type=str)
 
         parser_mode = parser.add_mutually_exclusive_group(required=True)
         parser_mode.add_argument('--text', help="Show PnL as a text table", dest='text', action='store_true')
@@ -77,8 +79,8 @@ class OasisMarketMakerPnl:
         vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
         vwaps_start = start_timestamp
 
-        # if self.arguments.text:
-        self.text(trades, vwaps, vwaps_start)
+        if self.arguments.text:
+            self.text(trades, vwaps, vwaps_start)
 
         if self.arguments.chart:
             self.chart(start_timestamp, end_timestamp, prices, trades, vwaps, vwaps_start)
@@ -154,9 +156,12 @@ class OasisMarketMakerPnl:
 
         ax.set_ylabel('Cumulative PnL ($)')
         ax2.set_ylabel('ETH/USD price ($)')
-
         plt.title("Profit: {:,.2f} USD".format(np.sum(pnl_profits)))
-        plt.show()
+
+        if self.arguments.output:
+            plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)
+        else:
+            plt.show()
 
 
 if __name__ == '__main__':
