@@ -201,6 +201,12 @@ def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int) -> Li
     return list(filter(lambda price: timestamp_range_start <= price.timestamp <= timestamp_range_end, prices))
 
 
+def day(timestamp: int):
+    assert(isinstance(timestamp, int))
+    transaction_timestamp = datetime.datetime.fromtimestamp(timestamp, tz=pytz.UTC)
+    return transaction_timestamp.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
 def iso_8601(tm) -> str:
     return tm.isoformat().replace('+00:00', 'Z')
 

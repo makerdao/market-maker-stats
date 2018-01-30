@@ -22,11 +22,12 @@ import sys
 import time
 
 import numpy as np
+from typing import List
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.oasis import oasis_trades
+from market_maker_stats.oasis import oasis_trades, Trade
 from market_maker_stats.pnl import calculate_pnl, prepare_trades_for_pnl, get_approx_vwaps
-from market_maker_stats.util import get_gdax_prices, timestamp_to_x
+from market_maker_stats.util import get_gdax_prices, timestamp_to_x, Price
 from pymaker import Address
 from pymaker.oasis import SimpleMarket
 
@@ -72,9 +73,6 @@ class OasisMarketMakerPnl:
         return "DAI"
 
     def main(self):
-        import matplotlib.dates as md
-        import matplotlib.pyplot as plt
-
         events = self.otc.past_take(self.arguments.past_blocks)
         trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, events)
         start_timestamp = trades[0].timestamp
@@ -83,6 +81,13 @@ class OasisMarketMakerPnl:
         prices = get_gdax_prices(start_timestamp, end_timestamp)
         vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
         vwaps_start = start_timestamp
+
+        if self.arguments.chart:
+            self.chart(start_timestamp, end_timestamp, prices, trades, vwaps, vwaps_start)
+
+    def chart(self, start_timestamp: int, end_timestamp: int, prices: List[Price], trades: List[Trade], vwaps: list, vwaps_start: int):
+        import matplotlib.dates as md
+        import matplotlib.pyplot as plt
 
         pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(trades)
         pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
@@ -98,13 +103,14 @@ class OasisMarketMakerPnl:
         ax.patch.set_visible(False)
 
         dt_timestamps = [datetime.datetime.fromtimestamp(timestamp) for timestamp in pnl_timestamps]
-
         ax.plot(dt_timestamps[:len(pnl_profits)], np.cumsum(pnl_profits), color='green')
+
         ax2.plot(list(map(lambda price: timestamp_to_x(price.timestamp), prices)),
                  list(map(lambda price: price.market_price, prices)), color='red')
 
         ax.set_ylabel('Cumulative PnL ($)')
         ax2.set_ylabel('ETH/USD price ($)')
+
         plt.title("Profit: {:0.2f} USD".format(np.sum(pnl_profits)))
         plt.show()
 
