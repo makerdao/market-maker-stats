@@ -20,9 +20,11 @@ import json
 import logging
 
 import errno
+from functools import reduce
 
 import filelock
 import pytz
+import re
 import requests
 import os
 import time
@@ -201,7 +203,7 @@ def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int) -> Li
     return list(filter(lambda price: timestamp_range_start <= price.timestamp <= timestamp_range_end, prices))
 
 
-def day(timestamp: int):
+def get_day(timestamp: int):
     assert(isinstance(timestamp, int))
     transaction_timestamp = datetime.datetime.fromtimestamp(timestamp, tz=pytz.UTC)
     return transaction_timestamp.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -225,3 +227,7 @@ def timestamp_to_x(timestamp: int):
 
 def sort_trades(trades: list) -> list:
     return sorted(trades, key=lambda trade: trade.timestamp, reverse=True)
+
+
+def sum_wads(iterable):
+    return reduce(lambda x, y: x + y, iterable, Wad(0))

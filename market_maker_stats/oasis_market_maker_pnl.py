@@ -20,14 +20,17 @@ import datetime
 import logging
 import sys
 import time
+from itertools import groupby
+from typing import List
 
 import numpy as np
-from typing import List
+import pytz
+from texttable import Texttable
 from web3 import Web3, HTTPProvider
 
 from market_maker_stats.oasis import oasis_trades, Trade
 from market_maker_stats.pnl import calculate_pnl, prepare_trades_for_pnl, get_approx_vwaps
-from market_maker_stats.util import get_gdax_prices, timestamp_to_x, Price
+from market_maker_stats.util import get_gdax_prices, timestamp_to_x, Price, get_day, sum_wads
 from pymaker import Address
 from pymaker.oasis import SimpleMarket
 
@@ -63,15 +66,6 @@ class OasisMarketMakerPnl:
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
         logging.getLogger("filelock").setLevel(logging.WARNING)
 
-    def token_pair(self):
-        return "ETH/DAI"
-
-    def base_token(self):
-        return "ETH"
-
-    def quote_token(self):
-        return "DAI"
-
     def main(self):
         events = self.otc.past_take(self.arguments.past_blocks)
         trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, events)
@@ -82,8 +76,49 @@ class OasisMarketMakerPnl:
         vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
         vwaps_start = start_timestamp
 
+        # if self.arguments.text:
+        self.text(trades, vwaps, vwaps_start)
+
         if self.arguments.chart:
             self.chart(start_timestamp, end_timestamp, prices, trades, vwaps, vwaps_start)
+
+    def text(self, trades: List[Trade], vwaps: list, vwaps_start: int):
+        def table_data():
+            for day, day_trades in groupby(trades, lambda trade: get_day(trade.timestamp)):
+                day_trades = list(day_trades)
+
+                pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(day_trades)
+                pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
+
+                day_dai_sold = sum_wads(map(lambda trade: trade.money, filter(lambda trade: trade.is_sell, day_trades)))
+                day_dai_bought = sum_wads(map(lambda trade: trade.money, filter(lambda trade: not trade.is_sell, day_trades)))
+                day_profit = np.sum(pnl_profits)
+
+                yield [day.strftime('%Y-%m-%d'),
+                       (len(day_trades)),
+                       "{:,.2f} DAI".format(float(day_dai_sold)),
+                       "{:,.2f} DAI".format(float(day_dai_bought)),
+                       "{:,.2f} USD".format(day_profit),
+                       ""]
+
+        data = list(table_data())
+        if len(data) > 0:
+            data[0][-1] = "(incomplete day)"
+            data[-1][-1] = "(incomplete day)"
+
+        table = Texttable(max_width=250)
+        table.set_deco(Texttable.HEADER)
+        table.set_cols_dtype(['t', 't', 't', 't', 't', 't'])
+        table.set_cols_align(['l', 'r', 'r', 'r', 'r', 'l'])
+        table.set_cols_width([11, 15, 20, 20, 25, 20])
+        table.add_rows([["Day", "# transactions", "Total sold", "Total bought", "Profit", "Remarks"]] + data)
+
+        print(f"")
+        print(f"PnL report for market-making on the ETH/DAI pair:")
+        print(f"")
+        print(table.draw())
+        print(f"")
+        print(f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}")
 
     def chart(self, start_timestamp: int, end_timestamp: int, prices: List[Price], trades: List[Trade], vwaps: list, vwaps_start: int):
         import matplotlib.dates as md
@@ -111,7 +146,7 @@ class OasisMarketMakerPnl:
         ax.set_ylabel('Cumulative PnL ($)')
         ax2.set_ylabel('ETH/USD price ($)')
 
-        plt.title("Profit: {:0.2f} USD".format(np.sum(pnl_profits)))
+        plt.title("Profit: {:,.2f} USD".format(np.sum(pnl_profits)))
         plt.show()
 
 
