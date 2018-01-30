@@ -32,6 +32,7 @@ from market_maker_stats.oasis import oasis_trades, Trade
 from market_maker_stats.pnl import calculate_pnl, prepare_trades_for_pnl, get_approx_vwaps
 from market_maker_stats.util import get_gdax_prices, timestamp_to_x, Price, get_day, sum_wads
 from pymaker import Address
+from pymaker.numeric import Wad
 from pymaker.oasis import SimpleMarket
 
 
@@ -83,41 +84,49 @@ class OasisMarketMakerPnl:
             self.chart(start_timestamp, end_timestamp, prices, trades, vwaps, vwaps_start)
 
     def text(self, trades: List[Trade], vwaps: list, vwaps_start: int):
-        def table_data():
-            for day, day_trades in groupby(trades, lambda trade: get_day(trade.timestamp)):
-                day_trades = list(day_trades)
+        data = []
+        total_dai_net = Wad(0)
+        total_profit = 0
+        for day, day_trades in groupby(trades, lambda trade: get_day(trade.timestamp)):
+            day_trades = list(day_trades)
 
-                pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(day_trades)
-                pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
+            pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(day_trades)
+            pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
 
-                day_dai_sold = sum_wads(map(lambda trade: trade.money, filter(lambda trade: trade.is_sell, day_trades)))
-                day_dai_bought = sum_wads(map(lambda trade: trade.money, filter(lambda trade: not trade.is_sell, day_trades)))
-                day_profit = np.sum(pnl_profits)
+            day_dai_bought = sum_wads(map(lambda trade: trade.money, filter(lambda trade: not trade.is_sell, day_trades)))
+            day_dai_sold = sum_wads(map(lambda trade: trade.money, filter(lambda trade: trade.is_sell, day_trades)))
+            day_dai_net = day_dai_bought - day_dai_sold
+            day_profit = np.sum(pnl_profits)
 
-                yield [day.strftime('%Y-%m-%d'),
-                       (len(day_trades)),
-                       "{:,.2f} DAI".format(float(day_dai_sold)),
-                       "{:,.2f} DAI".format(float(day_dai_bought)),
-                       "{:,.2f} USD".format(day_profit),
-                       ""]
+            total_dai_net += day_dai_net
+            total_profit += day_profit
 
-        data = list(table_data())
-        if len(data) > 0:
-            data[0][-1] = "(incomplete day)"
-            data[-1][-1] = "(incomplete day)"
+            data.append([day.strftime('%Y-%m-%d'),
+                         len(day_trades),
+                         "{:,.2f} DAI".format(float(day_dai_bought)),
+                         "{:,.2f} DAI".format(float(day_dai_sold)),
+                         "{:,.2f} DAI".format(float(day_dai_net)),
+                         "{:,.2f} DAI".format(float(total_dai_net)),
+                         "{:,.2f} USD".format(day_profit)])
 
         table = Texttable(max_width=250)
         table.set_deco(Texttable.HEADER)
-        table.set_cols_dtype(['t', 't', 't', 't', 't', 't'])
-        table.set_cols_align(['l', 'r', 'r', 'r', 'r', 'l'])
-        table.set_cols_width([11, 15, 20, 20, 25, 20])
-        table.add_rows([["Day", "# transactions", "Total sold", "Total bought", "Profit", "Remarks"]] + data)
+        table.set_cols_dtype(['t', 't', 't', 't', 't', 't', 't'])
+        table.set_cols_align(['l', 'r', 'r', 'r', 'r', 'r', 'r'])
+        table.set_cols_width([11, 15, 20, 18, 30, 20, 25])
+        table.add_rows([["Day", "# transactions", "Bought", "Sold", "Net bought", "Cumulative net bought", "Profit"]] + data)
 
         print(f"")
         print(f"PnL report for market-making on the ETH/DAI pair:")
         print(f"")
         print(table.draw())
         print(f"")
+        print(f"The first and the last day of the report may not contain all trades.")
+        print(f"As a rolling VWAP window is used, last {self.arguments.vwap_minutes} minutes of trades are excluded"
+              f" from profit calculation.")
+        print(f"")
+        print(f"Number of trades: {len(trades)}")
+        print(f"Total profit: " + "{:,.2f} USD".format(total_profit))
         print(f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}")
 
     def chart(self, start_timestamp: int, end_timestamp: int, prices: List[Price], trades: List[Trade], vwaps: list, vwaps_start: int):
