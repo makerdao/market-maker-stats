@@ -24,9 +24,9 @@ import time
 import numpy as np
 from web3 import Web3, HTTPProvider
 
-import market_maker_stats
 from market_maker_stats.oasis import oasis_trades
-from market_maker_stats.util import format_timestamp, get_approx_vwaps, get_gdax_prices, timestamp_to_x
+from market_maker_stats.pnl import calculate_pnl, prepare_trades_for_pnl, get_approx_vwaps
+from market_maker_stats.util import get_gdax_prices, timestamp_to_x
 from pymaker import Address
 from pymaker.oasis import SimpleMarket
 
@@ -84,8 +84,8 @@ class OasisMarketMakerPnl:
         vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
         vwaps_start = start_timestamp
 
-        pnl_trades, pnl_prices, pnl_timestamps = market_maker_stats.util.prepare_trades_for_pnl(trades)
-        profits = market_maker_stats.util.calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
+        pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(trades)
+        profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
 
         print("{}".format(np.sum(profits)))
 
