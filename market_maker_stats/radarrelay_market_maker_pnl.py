@@ -62,6 +62,10 @@ class RadarRelayMarketMakerPnl:
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.exchange = ZrxExchange(web3=self.web3, address=Address(self.arguments.exchange_address))
 
+        if self.arguments.chart and self.arguments.output:
+            import matplotlib
+            matplotlib.use('Agg')
+
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
         logging.getLogger("filelock").setLevel(logging.WARNING)
 
