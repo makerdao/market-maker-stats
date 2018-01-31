@@ -41,6 +41,7 @@ class RadarRelayMarketMakerChart:
         parser.add_argument("--exchange-address", help="Ethereum address of the 0x contract", required=True, type=str)
         parser.add_argument("--sai-address", help="Ethereum address of the SAI token", required=True, type=str)
         parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
+        parser.add_argument("--old-weth-address", help="Ethereum address of the old WETH token", required=True, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
@@ -52,6 +53,7 @@ class RadarRelayMarketMakerChart:
         self.infura = Web3(HTTPProvider(endpoint_uri=f"https://mainnet.infura.io/", request_kwargs={'timeout': 120}))
         self.sai_address = Address(self.arguments.sai_address)
         self.weth_address = Address(self.arguments.weth_address)
+        self.old_weth_address = Address(self.arguments.old_weth_address)
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.exchange = ZrxExchange(web3=self.web3, address=Address(self.arguments.exchange_address))
 
@@ -67,7 +69,7 @@ class RadarRelayMarketMakerChart:
         end_timestamp = int(time.time())
 
         events = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
-        trades = radarrelay_trades(self.infura, self.market_maker_address, self.sai_address, self.weth_address, events)
+        trades = radarrelay_trades(self.infura, self.market_maker_address, self.sai_address, [self.weth_address, self.old_weth_address], events)
 
         prices = get_gdax_prices(start_timestamp, end_timestamp)
 

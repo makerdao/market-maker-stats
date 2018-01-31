@@ -36,20 +36,20 @@ class Trade:
         self.taker = taker
 
 
-def radarrelay_trades(infura: Web3, market_maker_address: Address, sai_address: Address, weth_address: Address, past_fills: List[LogFill]) -> list:
+def radarrelay_trades(infura: Web3, market_maker_address: Address, sai_address: Address, weth_addresses: List[Address], past_fills: List[LogFill]) -> list:
     assert(isinstance(infura, Web3))
     assert(isinstance(market_maker_address, Address))
     assert(isinstance(sai_address, Address))
-    assert(isinstance(weth_address, Address))
+    assert(isinstance(weth_addresses, list))
     assert(isinstance(past_fills, list))
 
     def sell_trades() -> List[Trade]:
         return list(map(lambda log_fill: Trade(get_event_timestamp(infura, log_fill), log_fill.filled_buy_amount / log_fill.filled_pay_amount, log_fill.filled_pay_amount, log_fill.filled_buy_amount, False, True, log_fill.taker),
-                        filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token == sai_address and log_take.pay_token == weth_address, past_fills)))
+                        filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token == sai_address and log_take.pay_token in weth_addresses, past_fills)))
 
     def buy_trades() -> List[Trade]:
         return list(map(lambda log_fill: Trade(get_event_timestamp(infura, log_fill), log_fill.filled_pay_amount / log_fill.filled_buy_amount, log_fill.filled_buy_amount, log_fill.filled_pay_amount, True, False, log_fill.taker),
-                        filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token == weth_address and log_take.pay_token == sai_address, past_fills)))
+                        filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token in weth_addresses and log_take.pay_token == sai_address, past_fills)))
 
     trades = sell_trades() + buy_trades()
     return sorted(trades, key=lambda trade: trade.timestamp)
