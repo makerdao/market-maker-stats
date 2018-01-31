@@ -101,8 +101,8 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int):
         pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(day_trades)
         pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
 
-        day_dai_bought = sum_wads(map(lambda trade: trade.money, filter(lambda trade: not trade.is_sell, day_trades)))
-        day_dai_sold = sum_wads(map(lambda trade: trade.money, filter(lambda trade: trade.is_sell, day_trades)))
+        day_dai_bought = sum_wads(map(lambda trade: trade.money, filter(lambda trade: trade.is_sell, day_trades)))
+        day_dai_sold = sum_wads(map(lambda trade: trade.money, filter(lambda trade: not trade.is_sell, day_trades)))
         day_dai_net = day_dai_bought - day_dai_sold
         day_profit = np.sum(pnl_profits)
 
