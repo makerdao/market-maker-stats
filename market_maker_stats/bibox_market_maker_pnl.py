@@ -67,7 +67,7 @@ class BiboxMarketMakerPnl:
 
         prices = get_gdax_prices(start_timestamp, end_timestamp)
         vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
-        vwaps_start = start_timestamp
+        vwaps_start = prices[0].timestamp
 
         if self.arguments.text:
             pnl_text(trades, vwaps, vwaps_start)
