@@ -42,7 +42,7 @@ SIZE_PRICE_MAX = 30000
 
 
 class Price:
-    def __init__(self, timestamp: int, market_price: Wad, market_price_min: Wad, market_price_max: Wad, volume: Wad):
+    def __init__(self, timestamp: int, market_price: float, market_price_min: float, market_price_max: float, volume: float):
         self.timestamp = timestamp
         self.market_price = market_price
         self.market_price_min = market_price_min
