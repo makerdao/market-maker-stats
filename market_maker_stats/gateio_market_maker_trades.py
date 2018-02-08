@@ -16,18 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import datetime
-import json
-import logging
 import sys
 import time
-from typing import List
 
-import pytz
-from texttable import Texttable
-
-from market_maker_stats.util import format_timestamp, to_seconds, sort_trades
-from pyexchange.bibox import BiboxApi, Trade
+from market_maker_stats.trades import text_trades, json_trades
+from market_maker_stats.util import to_seconds, sort_trades, initialize_logging
 from pyexchange.gateio import GateIOApi
 
 
@@ -54,8 +47,7 @@ class GateIOMarketMakerTrades:
                                     secret_key=self.arguments.gateio_secret_key,
                                     timeout=self.arguments.gateio_timeout)
 
-        logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
-        logging.getLogger("filelock").setLevel(logging.WARNING)
+        initialize_logging()
 
     def token_pair(self):
         return self.arguments.pair.replace("_", "/").upper()
@@ -72,61 +64,10 @@ class GateIOMarketMakerTrades:
         trades = sort_trades(trades)
 
         if self.arguments.text:
-            self.text_trades(trades)
-        elif self.arguments.json:
-            self.json_trades(trades)
-        else:
-            raise Exception("Unknown output mode")
+            text_trades(self.token_pair(), self.base_token(), self.quote_token(), trades)
 
-    def json_trades(self, trades: List[Trade]):
-        assert(isinstance(trades, list))
-
-        def build_item(trade: Trade) -> dict:
-            return {
-                'datetime': format_timestamp(trade.timestamp),
-                'timestamp': trade.timestamp,
-                'type': "Sell" if trade.is_sell else "Buy",
-                'price': float(trade.price),
-                'amount': float(trade.amount),
-                'amount_symbol': trade.amount_symbol.upper(),
-                'money': float(trade.money),
-                'money_symbol': trade.money_symbol.upper()
-            }
-
-        print(json.dumps(list(map(build_item, trades)), indent=True))
-
-    def text_trades(self, trades: List[Trade]):
-        assert(isinstance(trades, list))
-
-        def table_row(trade: Trade) -> list:
-            assert(trade.amount_symbol.upper() == self.base_token())
-            assert(trade.money_symbol.upper() == self.quote_token())
-
-            return [format_timestamp(trade.timestamp),
-                    "Sell" if trade.is_sell else "Buy",
-                    format(float(trade.price), '.8f'),
-                    format(float(trade.amount), '.8f'),
-                    format(float(trade.money), '.8f')]
-
-        table = Texttable(max_width=250)
-        table.set_deco(Texttable.HEADER)
-        table.set_cols_dtype(['t', 't', 't', 't', 't'])
-        table.set_cols_align(['l', 'l', 'r', 'r', 'r'])
-        table.add_rows([["Date/time",
-                         "Type",
-                         "Price",
-                         f"Amount in {self.base_token()}",
-                         f"Value in {self.quote_token()}"]] + list(map(table_row, trades)))
-
-        print(f"Trade history on the {self.token_pair()} pair:")
-        print(f"")
-        print(table.draw())
-        print(f"")
-        print(f"Buy  = Somebody bought {self.quote_token()} from the keeper")
-        print(f"Sell = Somebody sold {self.quote_token()} to the keeper")
-        print(f"")
-        print(f"Number of trades: {len(trades)}")
-        print(f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}")
+        if self.arguments.json:
+            json_trades(trades)
 
 
 if __name__ == '__main__':
