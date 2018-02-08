@@ -24,9 +24,10 @@ from typing import List, Optional
 
 from web3 import Web3, HTTPProvider
 
+from market_maker_stats.chart import initialize_charting
 from market_maker_stats.oasis import oasis_trades, Trade
 from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, iso_8601, Price, get_block_timestamp, \
-    timestamp_to_x
+    timestamp_to_x, initialize_logging
 from pymaker import Address
 from pymaker.numeric import Wad
 from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
@@ -86,12 +87,8 @@ class OasisMarketMakerChart:
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.otc = SimpleMarket(web3=self.web3, address=Address(self.arguments.oasis_address))
 
-        if self.arguments.output:
-            import matplotlib
-            matplotlib.use('Agg')
-
-        logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
-        logging.getLogger("filelock").setLevel(logging.WARNING)
+        initialize_charting(self.arguments.output)
+        initialize_logging()
 
     def main(self):
         start_timestamp = get_block_timestamp(self.infura, self.web3.eth.blockNumber - self.arguments.past_blocks)

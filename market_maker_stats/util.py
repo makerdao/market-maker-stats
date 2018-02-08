@@ -235,3 +235,8 @@ def sort_trades_for_pnl(trades: list) -> list:
 
 def sum_wads(iterable):
     return reduce(lambda x, y: x + y, iterable, Wad(0))
+
+
+def initialize_logging():
+    logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
+    logging.getLogger("filelock").setLevel(logging.WARNING)

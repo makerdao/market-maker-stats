@@ -16,15 +16,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import datetime
-import logging
 import sys
 import time
-from typing import List
 
-from market_maker_stats.util import amount_to_size, get_file_prices, Price, get_block_timestamp, to_seconds, \
-    timestamp_to_x
-from pyexchange.gateio import GateIOApi, Trade
+from market_maker_stats.chart import initialize_charting, draw_chart
+from market_maker_stats.util import get_file_prices, to_seconds, \
+    initialize_logging
+from pyexchange.gateio import GateIOApi
 
 
 class GateIOMarketMakerChart:
@@ -49,12 +47,8 @@ class GateIOMarketMakerChart:
                                     secret_key=self.arguments.gateio_secret_key,
                                     timeout=self.arguments.gateio_timeout)
 
-        if self.arguments.output:
-            import matplotlib
-            matplotlib.use('Agg')
-
-        logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
-        logging.getLogger("filelock").setLevel(logging.WARNING)
+        initialize_charting(self.arguments.output)
+        initialize_logging()
 
     def main(self):
         start_timestamp = int(time.time() - to_seconds(self.arguments.past))
@@ -72,53 +66,7 @@ class GateIOMarketMakerChart:
         else:
             alternative_prices = []
 
-        self.draw(start_timestamp, end_timestamp, prices, alternative_prices, trades)
-
-    def to_timestamp(self, price_or_trade):
-        return timestamp_to_x(price_or_trade.timestamp)
-
-    def to_price(self, trade: Trade):
-        return trade.price
-
-    def to_size(self, trade: Trade):
-        return amount_to_size(trade.money_symbol, trade.money)
-
-    def draw(self, start_timestamp: int, end_timestamp: int, prices: List[Price], alternative_prices: List[Price], trades: List[Trade]):
-        import matplotlib.dates as md
-        import matplotlib.pyplot as plt
-
-        plt.subplots_adjust(bottom=0.2)
-        plt.xticks(rotation=25)
-        ax=plt.gca()
-        ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
-        ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
-
-        if len(prices) > 0:
-            timestamps = list(map(self.to_timestamp, prices))
-            market_prices = list(map(lambda price: price.market_price, prices))
-            plt.plot_date(timestamps, market_prices, 'r-', zorder=2)
-
-        if len(alternative_prices) > 0:
-            timestamps = list(map(self.to_timestamp, alternative_prices))
-            market_prices = list(map(lambda price: price.market_price, alternative_prices))
-            plt.plot_date(timestamps, market_prices, 'y-', zorder=1)
-
-        sell_trades = list(filter(lambda trade: trade.is_sell, trades))
-        sell_x = list(map(self.to_timestamp, sell_trades))
-        sell_y = list(map(self.to_price, sell_trades))
-        sell_s = list(map(self.to_size, sell_trades))
-        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=3)
-
-        buy_trades = list(filter(lambda trade: not trade.is_sell, trades))
-        buy_x = list(map(self.to_timestamp, buy_trades))
-        buy_y = list(map(self.to_price, buy_trades))
-        buy_s = list(map(self.to_size, buy_trades))
-        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=3)
-
-        if self.arguments.output:
-            plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)
-        else:
-            plt.show()
+        draw_chart(start_timestamp, end_timestamp, prices, alternative_prices, trades, self.arguments.output)
 
 
 if __name__ == '__main__':

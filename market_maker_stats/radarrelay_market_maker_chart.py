@@ -23,9 +23,10 @@ from typing import List
 
 from web3 import Web3, HTTPProvider
 
+from market_maker_stats.chart import initialize_charting, draw_chart
 from market_maker_stats.radarrelay import radarrelay_trades, Trade
 from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, Price, get_block_timestamp, \
-    timestamp_to_x
+    timestamp_to_x, initialize_logging
 from pymaker import Address
 from pymaker.zrx import ZrxExchange
 
@@ -57,12 +58,8 @@ class RadarRelayMarketMakerChart:
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.exchange = ZrxExchange(web3=self.web3, address=Address(self.arguments.exchange_address))
 
-        if self.arguments.output:
-            import matplotlib
-            matplotlib.use('Agg')
-
-        logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
-        logging.getLogger("filelock").setLevel(logging.WARNING)
+        initialize_charting(self.arguments.output)
+        initialize_logging()
 
     def main(self):
         start_timestamp = get_block_timestamp(self.infura, self.web3.eth.blockNumber - self.arguments.past_blocks)
@@ -73,41 +70,7 @@ class RadarRelayMarketMakerChart:
 
         prices = get_gdax_prices(start_timestamp, end_timestamp)
 
-        self.draw(start_timestamp, end_timestamp, prices, trades)
-
-    def to_size(self, trade: Trade):
-        return amount_in_usd_to_size(trade.money)
-
-    def draw(self, start_timestamp: int, end_timestamp: int, prices: List[Price], trades: List[Trade]):
-        import matplotlib.dates as md
-        import matplotlib.pyplot as plt
-
-        plt.subplots_adjust(bottom=0.2)
-        plt.xticks(rotation=25)
-        ax=plt.gca()
-        ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
-        ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
-
-        timestamps = list(map(timestamp_to_x, map(lambda price: price.timestamp, prices)))
-        market_prices = list(map(lambda price: price.market_price, prices))
-        plt.plot_date(timestamps, market_prices, 'r-', zorder=1)
-
-        sell_trades = list(filter(lambda trade: trade.is_sell, trades))
-        sell_x = list(map(timestamp_to_x, map(lambda trade: trade.timestamp, sell_trades)))
-        sell_y = list(map(lambda trade: trade.price, sell_trades))
-        sell_s = list(map(self.to_size, sell_trades))
-        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=2)
-
-        buy_trades = list(filter(lambda trade: trade.is_buy, trades))
-        buy_x = list(map(timestamp_to_x, map(lambda trade: trade.timestamp, buy_trades)))
-        buy_y = list(map(lambda trade: trade.price, buy_trades))
-        buy_s = list(map(self.to_size, buy_trades))
-        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=2)
-
-        if self.arguments.output:
-            plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)
-        else:
-            plt.show()
+        draw_chart(start_timestamp, end_timestamp, prices, [], trades, self.arguments.output)
 
 
 if __name__ == '__main__':
