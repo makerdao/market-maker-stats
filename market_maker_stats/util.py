@@ -240,3 +240,8 @@ def sum_wads(iterable):
 def initialize_logging():
     logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
     logging.getLogger("filelock").setLevel(logging.WARNING)
+
+
+def read_password(filename: str):
+    with open(filename) as file:
+        return "".join(line.rstrip() for line in file)

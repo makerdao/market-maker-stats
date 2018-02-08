@@ -58,16 +58,16 @@ def draw_chart(start_timestamp: int,
         market_prices = list(map(lambda price: price.market_price, prices))
         plt.plot_date(timestamps, market_prices, 'r-', zorder=2)
 
+        if False:
+            market_prices_min = list(map(lambda price: price.market_price_min, prices))
+            market_prices_max = list(map(lambda price: price.market_price_max, prices))
+            plt.plot_date(timestamps, market_prices_min, 'y-', zorder=1)
+            plt.plot_date(timestamps, market_prices_max, 'y-', zorder=1)
+
     if len(alternative_prices) > 0:
         timestamps = list(map(to_timestamp, alternative_prices))
         market_prices = list(map(lambda price: price.market_price, alternative_prices))
         plt.plot_date(timestamps, market_prices, 'y-', zorder=1)
-
-    if False:
-        market_prices_min = list(map(lambda price: price.market_price_min, prices))
-        market_prices_max = list(map(lambda price: price.market_price_max, prices))
-        plt.plot_date(timestamps, market_prices_min, 'y-', zorder=1)
-        plt.plot_date(timestamps, market_prices_max, 'y-', zorder=1)
 
     sell_trades = list(filter(lambda trade: trade.is_sell, trades))
     sell_x = list(map(to_timestamp, sell_trades))
