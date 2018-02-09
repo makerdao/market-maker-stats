@@ -8,13 +8,21 @@ A set of tools for collecting data from the `market-maker-keeper`
 
 The following tools are available in this repository:
 * `oasis-market-maker-chart`,
+* `oasis-market-maker-pnl`,
 * `oasis-market-maker-trades`,
 * `etherdelta-market-maker-chart`,
+* `etherdelta-market-maker-pnl`,
 * `etherdelta-market-maker-trades`,
 * `radarrelay-market-maker-chart`,
+* `radarrelay-market-maker-pnl`,
+* `radarrelay-market-maker-trades`,
+* `paradex-market-maker-chart`,
+* `paradex-market-maker-pnl`,
+* `paradex-market-maker-trades`,
 * `bibox-market-maker-chart`,
 * `bibox-market-maker-trades`,
 * `gateio-market-maker-chart`,
+* `gateio-market-maker-pnl`,
 * `gateio-market-maker-trades`.
 
 <https://chat.makerdao.com/channel/keeper>
