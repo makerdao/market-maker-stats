@@ -7,23 +7,23 @@ A set of tools for collecting data from the `market-maker-keeper`
 (<https://github.com/makerdao/market-maker-keeper>) keepers.
 
 The following tools are available in this repository:
-* `oasis-market-maker-chart`,
+* `oasis-market-maker-chart` (trade chart tool for OasisDEX),
 * `oasis-market-maker-pnl`,
-* `oasis-market-maker-trades`,
-* `etherdelta-market-maker-chart`,
+* `oasis-market-maker-trades` (trade history dumping tool for OasisDEX),
+* `etherdelta-market-maker-chart` (trade chart tool for EtherDelta),
 * `etherdelta-market-maker-pnl`,
-* `etherdelta-market-maker-trades`,
-* `radarrelay-market-maker-chart`,
+* `etherdelta-market-maker-trades` (trade history dumping tool for EtherDelta),
+* `radarrelay-market-maker-chart` (trade chart tool for RadarRelay),
 * `radarrelay-market-maker-pnl`,
-* `radarrelay-market-maker-trades`,
-* `paradex-market-maker-chart`,
+* `radarrelay-market-maker-trades` (trade history dumping tool for RadarRelay),
+* `paradex-market-maker-chart` (trade chart tool for Paradex),
 * `paradex-market-maker-pnl`,
-* `paradex-market-maker-trades`,
-* `bibox-market-maker-chart`,
-* `bibox-market-maker-trades`,
-* `gateio-market-maker-chart`,
-* `gateio-market-maker-pnl`,
-* `gateio-market-maker-trades`.
+* `paradex-market-maker-trades` (trade history dumping tool for Paradex),
+* `bibox-market-maker-chart` (trade chart tool for Bibox),
+* `bibox-market-maker-pnl`,
+* `bibox-market-maker-trades` (trade history dumping tool for Bibox),
+* `gateio-market-maker-chart` (trade chart tool for gate.io),
+* `gateio-market-maker-trades` (trade history dumping tool for gate.io).
 
 <https://chat.makerdao.com/channel/keeper>
 
