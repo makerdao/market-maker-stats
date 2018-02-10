@@ -42,54 +42,61 @@ pip3 install -r requirements.txt
 For some known macOS issues see the [pymaker](https://github.com/makerdao/pymaker) README.
 
 
-## oasis-market-maker-chart
+## Trade chart tools
 
-Draws a chart with the historical GDAX ETH/USD price, closest `oasis-market-maker-keeper` bids and asks
-(represented as lines) and recent trades which took place with the keeper (represented as dots).
-The size of the dots depends on the trade volume. This way we can clearly spot
-if the keeper is not creating dangerous arbitrage opportunities.
+These tools draw a chart with either the historical GDAX ETH/USD price, or any other price
+which history is present in a disk file, and recent trades which took place with the keeper
+(represented as dots). The size of the dots depends on the trade volume. This way we can clearly
+spot if the keeper is not creating dangerous arbitrage opportunities.
 
-Sample result:
+Price history files can be supplied using `--price-history-file` and `--alternative-price-history-file`
+arguments. If they are, it is expected that each line of them will be a simple JSON document with `timestamp`
+and `price` properties. If no `--price-history-file` argument is supplied, historical GDAX ETH/USD price
+will be used.
+
+In case of OasisDEX (the `oasis-market-maker-chart` tool), closest bids and asks will also be shown
+in the chart (represented as lines).
+
+Sample result for OasisDEX:
 
 ![](https://s10.postimg.org/qzzbyuzxl/oasis_server1_1.png)
 
-### Usage
+Sample result for some other exchange:
+
+![](https://s10.postimg.org/u83tbvjmh/etherdelta_server1_1.png)
+
+
+## Profitability calculation tools
+
+These tools perform profitability calculation of ETH/DAI keepers.
+
+Sample text output:
 
 ```
-usage: oasis-market-maker-chart [-h] [--rpc-host RPC_HOST]
-                                [--rpc-port RPC_PORT]
-                                [--rpc-timeout RPC_TIMEOUT] --oasis-address
-                                OASIS_ADDRESS --sai-address SAI_ADDRESS
-                                --weth-address WETH_ADDRESS
-                                --market-maker-address MARKET_MAKER_ADDRESS
-                                --past-blocks PAST_BLOCKS [-o OUTPUT]
+PnL report for market-making on the ETH/DAI pair:
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
-  --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
-  --rpc-timeout RPC_TIMEOUT
-                        JSON-RPC timeout (in seconds, default: 60)
-  --oasis-address OASIS_ADDRESS
-                        Ethereum address of the OasisDEX contract
-  --sai-address SAI_ADDRESS
-                        Ethereum address of the SAI token
-  --weth-address WETH_ADDRESS
-                        Ethereum address of the WETH token
-  --market-maker-address MARKET_MAKER_ADDRESS
-                        Ethereum account of the market maker to analyze
-  --past-blocks PAST_BLOCKS
-                        Number of past blocks to analyze
-  -o OUTPUT, --output OUTPUT
-                        Name of the filename to save to chart to. Will get
-                        displayed on-screen if empty
+    Day       # transactions           Bought                 Sold                    Net bought                Cumulative net               Profit          
+                                                                                                                    bought                                   
+=============================================================================================================================================================
+2017-12-29                 16          19,785.70 DAI        20,230.31 DAI                      -444.61 DAI         326,188.03 DAI                  337.93 USD
+2017-12-30                 43          74,652.49 DAI        58,584.57 DAI                    16,067.92 DAI         342,255.95 DAI                2,292.57 USD
+2017-12-31                 23          41,964.14 DAI            14.50 DAI                    41,949.64 DAI         384,205.59 DAI                  429.15 USD
+
+The first and the last day of the report may not contain all trades.
+As a rolling VWAP window is used, last window of trades is excluded from profit calculation.
+
+Number of trades: 82
+Total profit: 2,771.40 USD
+Generated at: 2018.01.01 11:32:00 UTC
 ```
 
 
-## oasis-market-maker-trades
+## Trade history dumping tools
 
-Exports the list of recent trades which took place with the keeper, either as a text table (if invoked
-with `--text`) or as a JSON document (if invoked with `--json`).
+These tools export the list of recent trades which took place with the keeper, either as a text table
+(if invoked with `--text`) or as a JSON document (if invoked with `--json`).
+
+Taker address is only present for OasisDEX.
 
 Example text output:
 
@@ -134,378 +141,6 @@ Example JSON output:
   "taker": "0x78e134c3da7fb2b1b0e04e1bb3cdeb67d14e7a6d"
  }
 ]
-```
-
-### Usage
-
-```
-usage: oasis-market-maker-trades [-h] [--rpc-host RPC_HOST]
-                                 [--rpc-port RPC_PORT]
-                                 [--rpc-timeout RPC_TIMEOUT] --oasis-address
-                                 OASIS_ADDRESS --sai-address SAI_ADDRESS
-                                 --weth-address WETH_ADDRESS
-                                 --market-maker-address MARKET_MAKER_ADDRESS
-                                 --past-blocks PAST_BLOCKS (--text | --json)
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
-  --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
-  --rpc-timeout RPC_TIMEOUT
-                        JSON-RPC timeout (in seconds, default: 60)
-  --oasis-address OASIS_ADDRESS
-                        Ethereum address of the OasisDEX contract
-  --sai-address SAI_ADDRESS
-                        Ethereum address of the SAI token
-  --weth-address WETH_ADDRESS
-                        Ethereum address of the WETH token
-  --market-maker-address MARKET_MAKER_ADDRESS
-                        Ethereum account of the market maker to analyze
-  --past-blocks PAST_BLOCKS
-                        Number of past blocks to analyze
-  --text                List trades as a text table
-  --json                List trades as a JSON document
-```
-
-## etherdelta-market-maker-chart
-
-Draws a chart with the historical GDAX ETH/USD price and recent trades which took place with the keeper
-(represented as dots). The size of the dots depends on the trade volume. This way we can clearly spot
-if the keeper is not creating dangerous arbitrage opportunities.
-
-Sample result:
-
-![](https://s10.postimg.org/u83tbvjmh/etherdelta_server1_1.png)
-
-### Usage
-
-```
-usage: etherdelta-market-maker-chart [-h] [--rpc-host RPC_HOST]
-                                     [--rpc-port RPC_PORT]
-                                     [--rpc-timeout RPC_TIMEOUT]
-                                     --etherdelta-address ETHERDELTA_ADDRESS
-                                     --sai-address SAI_ADDRESS --eth-address
-                                     ETH_ADDRESS --market-maker-address
-                                     MARKET_MAKER_ADDRESS --past-blocks
-                                     PAST_BLOCKS [-o OUTPUT]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
-  --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
-  --rpc-timeout RPC_TIMEOUT
-                        JSON-RPC timeout (in seconds, default: 60)
-  --etherdelta-address ETHERDELTA_ADDRESS
-                        Ethereum address of the EtherDelta contract
-  --sai-address SAI_ADDRESS
-                        Ethereum address of the SAI token
-  --eth-address ETH_ADDRESS
-                        Ethereum address of the ETH token
-  --market-maker-address MARKET_MAKER_ADDRESS
-                        Ethereum account of the market maker to analyze
-  --past-blocks PAST_BLOCKS
-                        Number of past blocks to analyze
-  -o OUTPUT, --output OUTPUT
-                        Name of the filename to save to chart to. Will get
-                        displayed on-screen if empty
-```
-
-
-## etherdelta-market-maker-trades
-
-Exports the list of recent trades which took place with the keeper, either as a text table (if invoked
-with `--text`) or as a JSON document (if invoked with `--json`).
-
-For sample text and JSON output, see the `oasis-market-maker-trades` above.
-
-### Usage
-
-```
-usage: etherdelta-market-maker-trades [-h] [--rpc-host RPC_HOST]
-                                      [--rpc-port RPC_PORT]
-                                      [--rpc-timeout RPC_TIMEOUT]
-                                      --etherdelta-address ETHERDELTA_ADDRESS
-                                      --sai-address SAI_ADDRESS --eth-address
-                                      ETH_ADDRESS --market-maker-address
-                                      MARKET_MAKER_ADDRESS --past-blocks
-                                      PAST_BLOCKS (--text | --json)
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
-  --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
-  --rpc-timeout RPC_TIMEOUT
-                        JSON-RPC timeout (in seconds, default: 60)
-  --etherdelta-address ETHERDELTA_ADDRESS
-                        Ethereum address of the EtherDelta contract
-  --sai-address SAI_ADDRESS
-                        Ethereum address of the SAI token
-  --eth-address ETH_ADDRESS
-                        Ethereum address of the ETH token
-  --market-maker-address MARKET_MAKER_ADDRESS
-                        Ethereum account of the market maker to analyze
-  --past-blocks PAST_BLOCKS
-                        Number of past blocks to analyze
-  --text                List trades as a text table
-  --json                List trades as a JSON document
-```
-
-
-## radarrelay-market-maker-chart
-
-Draws a chart with the historical GDAX ETH/USD price and recent trades which took place with the keeper
-(represented as dots). The size of the dots depends on the trade volume. This way we can clearly spot
-if the keeper is not creating dangerous arbitrage opportunities.
-
-Sample result:
-
-![](https://s10.postimg.org/u83tbvjmh/etherdelta_server1_1.png)
-
-### Usage
-
-```
-usage: radarrelay-market-maker-chart [-h] [--rpc-host RPC_HOST]
-                                     [--rpc-port RPC_PORT]
-                                     [--rpc-timeout RPC_TIMEOUT]
-                                     --exchange-address EXCHANGE_ADDRESS
-                                     --sai-address SAI_ADDRESS --weth-address
-                                     WETH_ADDRESS --market-maker-address
-                                     MARKET_MAKER_ADDRESS --past-blocks
-                                     PAST_BLOCKS [-o OUTPUT]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
-  --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
-  --rpc-timeout RPC_TIMEOUT
-                        JSON-RPC timeout (in seconds, default: 60)
-  --exchange-address EXCHANGE_ADDRESS
-                        Ethereum address of the 0x contract
-  --sai-address SAI_ADDRESS
-                        Ethereum address of the SAI token
-  --weth-address WETH_ADDRESS
-                        Ethereum address of the WETH token
-  --market-maker-address MARKET_MAKER_ADDRESS
-                        Ethereum account of the market maker to analyze
-  --past-blocks PAST_BLOCKS
-                        Number of past blocks to analyze
-  -o OUTPUT, --output OUTPUT
-                        Name of the filename to save to chart to. Will get
-                        displayed on-screen if empty
-```
-
-
-## radarrelay-market-maker-trades
-
-Draws a chart with the historical GDAX ETH/USD price and recent trades which took place with the keeper
-(represented as dots). The size of the dots depends on the trade volume. This way we can clearly spot
-if the keeper is not creating dangerous arbitrage opportunities.
-
-### Usage
-
-```
-usage: radarrelay-market-maker-trades [-h] [--rpc-host RPC_HOST]
-                                      [--rpc-port RPC_PORT]
-                                      [--rpc-timeout RPC_TIMEOUT]
-                                      --exchange-address EXCHANGE_ADDRESS
-                                      --sai-address SAI_ADDRESS --weth-address
-                                      WETH_ADDRESS --market-maker-address
-                                      MARKET_MAKER_ADDRESS --past-blocks
-                                      PAST_BLOCKS [-o OUTPUT]
-                                      (--text | --json)
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --rpc-host RPC_HOST   JSON-RPC host (default: `localhost')
-  --rpc-port RPC_PORT   JSON-RPC port (default: `8545')
-  --rpc-timeout RPC_TIMEOUT
-                        JSON-RPC timeout (in seconds, default: 60)
-  --exchange-address EXCHANGE_ADDRESS
-                        Ethereum address of the 0x contract
-  --sai-address SAI_ADDRESS
-                        Ethereum address of the SAI token
-  --weth-address WETH_ADDRESS
-                        Ethereum address of the WETH token
-  --market-maker-address MARKET_MAKER_ADDRESS
-                        Ethereum account of the market maker to analyze
-  --past-blocks PAST_BLOCKS
-                        Number of past blocks to analyze
-  -o OUTPUT, --output OUTPUT
-                        Name of the filename to save to chart to. Will get
-                        displayed on-screen if empty
-  --text                List trades as a text table
-  --json                List trades as a JSON document
-```
-
-
-## bibox-market-maker-chart
-
-Draws a chart with either the historical GDAX ETH/USD price or the price history read from a file, and recent
-trades which took place with the keeper (represented as dots). The size of the dots depends on the trade volume.
-This way we can clearly spot if the keeper is not creating dangerous arbitrage opportunities.
-
-Price history files can be supplied using `--price-history-file` and `--alternative-price-history-file`
-arguments. If they are, it is expected that each line of them will be a simple JSON document with `timestamp`
-and `price` properties. If no `--price-history-file` argument is supplied, historical GDAX ETH/USD price
-will be displayed.
-
-Sample result:
-
-![](https://s10.postimg.org/g1o2gvteh/bibox_server1_2.png)
-
-### Usage
-
-```
-usage: bibox-market-maker-chart [-h] [--bibox-api-server BIBOX_API_SERVER]
-                                --bibox-api-key BIBOX_API_KEY --bibox-secret
-                                BIBOX_SECRET [--bibox-timeout BIBOX_TIMEOUT]
-                                [--bibox-retry-count BIBOX_RETRY_COUNT]
-                                [--price-history-file PRICE_HISTORY_FILE]
-                                [--alternative-price-history-file ALTERNATIVE_PRICE_HISTORY_FILE]
-                                --pair PAIR --past-trades PAST_TRADES
-                                [-o OUTPUT]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --bibox-api-server BIBOX_API_SERVER
-                        Address of the Bibox API server (default:
-                        'https://api.bibox.com')
-  --bibox-api-key BIBOX_API_KEY
-                        API key for the Bibox API
-  --bibox-secret BIBOX_SECRET
-                        Secret for the Bibox API
-  --bibox-timeout BIBOX_TIMEOUT
-                        Timeout for accessing the Bibox API
-  --bibox-retry-count BIBOX_RETRY_COUNT
-                        Retry count for accessing the Bibox API (default: 20)
-  --price-history-file PRICE_HISTORY_FILE
-                        File to use as the price history source
-  --alternative-price-history-file ALTERNATIVE_PRICE_HISTORY_FILE
-                        File to use as the alternative price history source
-  --pair PAIR           Token pair to draw the chart for
-  --past-trades PAST_TRADES
-                        Number of past trades to fetch and display
-  -o OUTPUT, --output OUTPUT
-                        Name of the filename to save to chart to. Will get
-                        displayed on-screen if empty
-```
-
-
-## bibox-market-maker-trades
-
-Exports the list of recent trades which took place with the keeper, either as a text table (if invoked
-with `--text`) or as a JSON document (if invoked with `--json`).
-
-For sample text and JSON output, see the `oasis-market-maker-trades` above.
-
-### Usage
-
-```
-usage: bibox-market-maker-trades [-h] [--bibox-api-server BIBOX_API_SERVER]
-                                 --bibox-api-key BIBOX_API_KEY --bibox-secret
-                                 BIBOX_SECRET [--bibox-timeout BIBOX_TIMEOUT]
-                                 [--bibox-retry-count BIBOX_RETRY_COUNT]
-                                 --pair PAIR --past PAST (--text | --json)
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --bibox-api-server BIBOX_API_SERVER
-                        Address of the Bibox API server (default:
-                        'https://api.bibox.com')
-  --bibox-api-key BIBOX_API_KEY
-                        API key for the Bibox API
-  --bibox-secret BIBOX_SECRET
-                        Secret for the Bibox API
-  --bibox-timeout BIBOX_TIMEOUT
-                        Timeout for accessing the Bibox API
-  --bibox-retry-count BIBOX_RETRY_COUNT
-                        Retry count for accessing the Bibox API (default: 20)
-  --pair PAIR           Token pair to get the past trades for
-  --past PAST           Past period of time for which to get the trades for
-                        (e.g. 3d)
-  --text                List trades as a text table
-  --json                List trades as a JSON document
-```
-
-
-## gateio-market-maker-chart
-
-Draws a chart with price history read from a file and recent trades which took place with the keeper
-(represented as dots). The size of the dots depends on the trade volume. This way we can clearly spot
-if the keeper is not creating dangerous arbitrage opportunities.
-
-Price history files can be supplied using `--price-history-file` and `--alternative-price-history-file`
-arguments. If they are, it is expected that each line of them will be a simple JSON document with `timestamp`
-and `price` properties. If neither `--price-history-file` not `--alternative-price-history-file` arguments
-are supplied, only the trades will be displayed on the chart.
-
-### Usage
-
-```
-usage: gateio-market-maker-chart [-h] [--gateio-api-server GATEIO_API_SERVER]
-                                 --gateio-api-key GATEIO_API_KEY
-                                 --gateio-secret-key GATEIO_SECRET_KEY
-                                 [--gateio-timeout GATEIO_TIMEOUT]
-                                 [--price-history-file PRICE_HISTORY_FILE]
-                                 [--alternative-price-history-file ALTERNATIVE_PRICE_HISTORY_FILE]
-                                 --pair PAIR [-o OUTPUT]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --gateio-api-server GATEIO_API_SERVER
-                        Address of the Gate.io API server (default:
-                        'https://data.gate.io')
-  --gateio-api-key GATEIO_API_KEY
-                        API key for the Gate.io API
-  --gateio-secret-key GATEIO_SECRET_KEY
-                        Secret key for the Gate.io API
-  --gateio-timeout GATEIO_TIMEOUT
-                        Timeout for accessing the Gate.io API (in seconds,
-                        default: 9.5)
-  --price-history-file PRICE_HISTORY_FILE
-                        File to use as the price history source
-  --alternative-price-history-file ALTERNATIVE_PRICE_HISTORY_FILE
-                        File to use as the alternative price history source
-  --pair PAIR           Token pair to draw the chart for
-  -o OUTPUT, --output OUTPUT
-                        Name of the filename to save to chart to. Will get
-                        displayed on-screen if empty
-```
-
-
-## gateio-market-maker-trades
-
-Exports the list of recent trades which took place with the keeper, either as a text table (if invoked
-with `--text`) or as a JSON document (if invoked with `--json`).
-
-For sample text and JSON output, see the `oasis-market-maker-trades` above.
-
-### Usage
-
-```
-usage: gateio-market-maker-trades [-h] [--gateio-api-server GATEIO_API_SERVER]
-                                  --gateio-api-key GATEIO_API_KEY
-                                  --gateio-secret-key GATEIO_SECRET_KEY
-                                  [--gateio-timeout GATEIO_TIMEOUT] --pair
-                                  PAIR --past PAST (--text | --json)
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --gateio-api-server GATEIO_API_SERVER
-                        Address of the Gate.io API server (default:
-                        'https://data.gate.io')
-  --gateio-api-key GATEIO_API_KEY
-                        API key for the Gate.io API
-  --gateio-secret-key GATEIO_SECRET_KEY
-                        Secret key for the Gate.io API
-  --gateio-timeout GATEIO_TIMEOUT
-                        Timeout for accessing the Gate.io API (in seconds,
-                        default: 9.5)
-  --pair PAIR           Token pair to get the past trades for
-  --past PAST           Past period of time for which to get the trades for
-                        (e.g. 3d)
-  --text                List trades as a text table
-  --json                List trades as a JSON document
 ```
 
 
