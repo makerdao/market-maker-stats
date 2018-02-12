@@ -21,6 +21,7 @@ import logging
 
 import errno
 from functools import reduce
+from pprint import pformat
 
 import filelock
 import pytz
@@ -48,6 +49,24 @@ class Price:
         self.market_price_min = market_price_min
         self.market_price_max = market_price_max
         self.volume = volume
+
+    def __eq__(self, other):
+        assert(isinstance(other, Price))
+        return self.timestamp == other.timestamp and \
+               self.market_price == other.market_price and \
+               self.market_price_min == other.market_price_min and \
+               self.market_price_max == other.market_price_max and \
+               self.volume == other.volume
+
+    def __hash__(self):
+        return hash((self.timestamp,
+                     self.market_price,
+                     self.market_price_min,
+                     self.market_price_max,
+                     self.volume))
+
+    def __repr__(self):
+        return pformat(vars(self))
 
 
 def to_seconds(string: str) -> int:

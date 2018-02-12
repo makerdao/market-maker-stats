@@ -33,10 +33,9 @@ def rolling_window(a, window):
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
 
-def get_approx_vwaps(prices: list, vwap_minutes: int):
-    # prices can have gaps, but we need minute-by-minute data, that's why we fill the gaps.
-    # zero price and zero volume is fine, this way it won't count towards vwap as we don't know
-    # what was there anyway
+# prices can have gaps, but for PnL calculation we need minute-by-minute data, that's why we fill the gaps.
+# zero price and zero volume is fine, this way it won't count towards vwap as we don't know what was there anyway
+def granularize_prices(prices: list) -> list:
     granular_prices = []
     last_timestamp = -1
     for price in prices:
@@ -47,6 +46,12 @@ def get_approx_vwaps(prices: list, vwap_minutes: int):
 
         last_timestamp = price.timestamp
         granular_prices.append(price)
+
+    return granular_prices
+
+
+def get_approx_vwaps(prices: list, vwap_minutes: int):
+    granular_prices = granularize_prices(prices)
 
     # approximates historical vwap_minutes VWAPs from GDAX by querying historical at minimal
     # (60 second) granularity, using (low+high)/2 as price for each bucket, then weighting by volume
