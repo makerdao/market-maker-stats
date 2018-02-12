@@ -30,7 +30,6 @@ def test_granularize_prices_fills_gaps():
     granularized_prices = granularize_prices(prices)
 
     # then
-    print(granularized_prices)
     assert granularized_prices == [Price(1518440700, 1.5, 1.4, 1.6, 10),
                                    Price(1518440760, 1.7, 1.6, 1.8, 14),
                                    Price(1518440820, 0, 0, 0, 0),
