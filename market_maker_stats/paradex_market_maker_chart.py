@@ -19,9 +19,13 @@ import argparse
 import sys
 import time
 
+from web3 import Web3, HTTPProvider
+
 from market_maker_stats.chart import initialize_charting, draw_chart
-from market_maker_stats.util import get_gdax_prices, get_file_prices, to_seconds, initialize_logging, read_password
+from market_maker_stats.util import get_gdax_prices, get_file_prices, to_seconds, initialize_logging
 from pyexchange.paradex import ParadexApi
+from pymaker import Address
+from pymaker.zrx import ZrxExchange
 
 
 class ParadexMarketMakerChart:
@@ -29,11 +33,14 @@ class ParadexMarketMakerChart:
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='paradex-market-maker-chart')
-        parser.add_argument("--eth-key-file", help="File with the private key file for the Ethereum account", required=True, type=str)
-        parser.add_argument("--eth-password-file", help="File with the private key password for the Ethereum account", required=True, type=str)
+        parser.add_argument("--rpc-host", help="JSON-RPC host (default: `localhost')", default="localhost", type=str)
+        parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
+        parser.add_argument("--rpc-timeout", help="JSON-RPC timeout (in seconds, default: 60)", type=int, default=60)
         parser.add_argument("--paradex-api-server", help="Address of the Paradex API server (default: 'https://api.paradex.io/consumer')", default='https://api.paradex.io/consumer', type=str)
         parser.add_argument("--paradex-api-key", help="API key for the Paradex API", required=True, type=str)
         parser.add_argument("--paradex-api-timeout", help="Timeout for accessing the Paradex API", default=9.5, type=float)
+        parser.add_argument("--exchange-address", help="Ethereum address of the 0x contract", required=True, type=str)
+        parser.add_argument("--market-maker-address", help="Ethereum account of the trading account", required=True, type=str)
         parser.add_argument("--price-history-file", help="File to use as the price history source", type=str)
         parser.add_argument("--alternative-price-history-file", help="File to use as the alternative price history source", type=str)
         parser.add_argument("--pair", help="Token pair to draw the chart for", required=True, type=str)
@@ -42,12 +49,15 @@ class ParadexMarketMakerChart:
                                                    " Will get displayed on-screen if empty", required=False, type=str)
         self.arguments = parser.parse_args(args)
 
-        self.paradex_api = ParadexApi(None,
+        self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}",
+                                      request_kwargs={'timeout': self.arguments.rpc_timeout}))
+        self.web3.eth.defaultAccount = self.arguments.market_maker_address
+
+        self.exchange = ZrxExchange(web3=self.web3, address=Address(self.arguments.exchange_address))
+        self.paradex_api = ParadexApi(self.exchange,
                                       self.arguments.paradex_api_server,
                                       self.arguments.paradex_api_key,
-                                      self.arguments.paradex_api_timeout,
-                                      self.arguments.eth_key_file,
-                                      read_password(self.arguments.eth_password_file))
+                                      self.arguments.paradex_api_timeout)
 
         initialize_charting(self.arguments.output)
         initialize_logging()
