@@ -42,6 +42,7 @@ class RadarRelayMarketMakerPnl:
         parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
         parser.add_argument("--old-weth-address", help="Ethereum address of the old WETH token", required=True, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
+        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", required=True, type=str)
         parser.add_argument("--vwap-minutes", help="Rolling VWAP window size (default: 240)", type=int, default=240)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
@@ -77,7 +78,7 @@ class RadarRelayMarketMakerPnl:
         trades = radarrelay_trades(self.infura, self.market_maker_address, self.sai_address, [self.weth_address, self.old_weth_address], events)
         trades = sort_trades_for_pnl(trades)
 
-        prices = get_gdax_prices(start_timestamp, end_timestamp)
+        prices = get_gdax_prices(self.arguments.gdax_price, start_timestamp, end_timestamp)
         vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
         vwaps_start = prices[0].timestamp
 

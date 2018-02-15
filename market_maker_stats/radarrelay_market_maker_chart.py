@@ -44,6 +44,7 @@ class RadarRelayMarketMakerChart:
         parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
         parser.add_argument("--old-weth-address", help="Ethereum address of the old WETH token", required=True, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
+        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", required=True, type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
                                                    " Will get displayed on-screen if empty", required=False, type=str)
@@ -68,7 +69,7 @@ class RadarRelayMarketMakerChart:
         events = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
         trades = radarrelay_trades(self.infura, self.market_maker_address, self.sai_address, [self.weth_address, self.old_weth_address], events)
 
-        prices = get_gdax_prices(start_timestamp, end_timestamp)
+        prices = get_gdax_prices(self.arguments.gdax_price, start_timestamp, end_timestamp)
 
         draw_chart(start_timestamp, end_timestamp, prices, [], trades, self.arguments.output)
 

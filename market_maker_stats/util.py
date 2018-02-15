@@ -135,13 +135,13 @@ def cache_folder():
     return db_folder
 
 
-def get_gdax_prices(start_timestamp: int, end_timestamp: int):
+def get_gdax_prices(product: str, start_timestamp: int, end_timestamp: int):
     prices = []
     timestamp = gdax_batch_begin(start_timestamp)
     while timestamp <= end_timestamp:
         timestamp_range_start = timestamp
         timestamp_range_end = gdax_batch_end(timestamp)
-        prices = prices + get_gdax_partial(timestamp_range_start, timestamp_range_end)
+        prices = prices + get_gdax_partial(product, timestamp_range_start, timestamp_range_end)
         timestamp = timestamp_range_end
 
     prices = list(filter(lambda price: start_timestamp <= price.timestamp <= end_timestamp, prices))
@@ -173,18 +173,19 @@ def gdax_fetch(url):
     return data
 
 
-def get_gdax_partial(timestamp_range_start: int, timestamp_range_end: int) -> List[Price]:
+def get_gdax_partial(product: str, timestamp_range_start: int, timestamp_range_end: int) -> List[Price]:
+    assert(isinstance(product, str))
     assert(isinstance(timestamp_range_start, int))
     assert(isinstance(timestamp_range_end, int))
 
     # We only cache batches if their end timestamp is at least one hour in the past.
     # There is no good reason for choosing exactly one hour as the cutoff time.
     can_cache = timestamp_range_end < int(time.time()) - 3600
-    cache_file = os.path.join(cache_folder(), f'gdax_ETH-USD_{timestamp_range_start}_{timestamp_range_end}_60.json')
+    cache_file = os.path.join(cache_folder(), f'gdax_{product.upper()}_{timestamp_range_start}_{timestamp_range_end}_60.json')
 
     start = datetime.datetime.fromtimestamp(timestamp_range_start, pytz.UTC)
     end = datetime.datetime.fromtimestamp(timestamp_range_end, pytz.UTC)
-    url = f"https://api.gdax.com/products/ETH-USD/candles?" \
+    url = f"https://api.gdax.com/products/{product.upper()}/candles?" \
           f"start={iso_8601(start)}&" \
           f"end={iso_8601(end)}&" \
           f"granularity=60"

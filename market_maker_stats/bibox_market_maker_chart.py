@@ -35,6 +35,7 @@ class BiboxMarketMakerChart:
         parser.add_argument("--bibox-secret", help="Secret for the Bibox API", required=True, type=str)
         parser.add_argument("--bibox-timeout", help="Timeout for accessing the Bibox API", default=9.5, type=float)
         parser.add_argument("--bibox-retry-count", help="Retry count for accessing the Bibox API (default: 20)", default=20, type=int)
+        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", type=str)
         parser.add_argument("--price-history-file", help="File to use as the price history source", type=str)
         parser.add_argument("--alternative-price-history-file", help="File to use as the alternative price history source", type=str)
         parser.add_argument("--pair", help="Token pair to draw the chart for", required=True, type=str)
@@ -63,8 +64,10 @@ class BiboxMarketMakerChart:
 
         if self.arguments.price_history_file:
             prices = get_file_prices(self.arguments.price_history_file, start_timestamp, end_timestamp)
+        elif self.arguments.gdax_price:
+            prices = get_gdax_prices(self.arguments.gdax_price, start_timestamp, end_timestamp)
         else:
-            prices = get_gdax_prices(start_timestamp, end_timestamp)
+            prices = []
 
         if self.arguments.alternative_price_history_file:
             alternative_prices = get_file_prices(self.arguments.alternative_price_history_file, start_timestamp, end_timestamp)

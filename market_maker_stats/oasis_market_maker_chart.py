@@ -74,6 +74,7 @@ class OasisMarketMakerChart:
         parser.add_argument("--sai-address", help="Ethereum address of the SAI token", required=True, type=str)
         parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
+        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", required=True, type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
                                                    " Will get displayed on-screen if empty", required=False, type=str)
@@ -158,7 +159,7 @@ class OasisMarketMakerChart:
         return states
 
     def get_gdax_states(self, start_timestamp: int, end_timestamp: int):
-        prices = get_gdax_prices(start_timestamp, end_timestamp)
+        prices = get_gdax_prices(self.arguments.gdax_price, start_timestamp, end_timestamp)
 
         return list(map(lambda price: State(timestamp=price.timestamp,
                                             order_book=None,
