@@ -78,8 +78,8 @@ def to_direction(x):
 def prepare_trades_for_pnl(trades: list):
     trades = sorted(trades, key=lambda trade: trade.timestamp)
 
-    # assumes the pair is ETH/DAI, so buying is +ETH -DAI
-    # trades is a 2-column array where each row is (delta_ETH, delta_DAI)
+    # assumes the pair is ETH/DAI or BTC/DAI, so buying is +ETH_or_BTC -DAI
+    # trades is a 2-column array where each row is (delta_ETH_or_BTC, delta_DAI)
     deals = np.array([(to_direction(not trade.is_sell)*float(trade.amount), to_direction(trade.is_sell)*float(trade.money)) for trade in trades])
     prices = np.array([float(trade.price) for trade in trades])
     timestamps = np.array([trade.timestamp for trade in trades])
@@ -144,7 +144,7 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int):
     table.add_rows([["Day", "# transactions", "Bought", "Sold", "Net bought", "Cumulative net bought", "Profit"]] + data)
 
     print(f"")
-    print(f"PnL report for market-making on the ETH/DAI pair:")
+    print(f"PnL report for DAI market-making:")
     print(f"")
     print(table.draw())
     print(f"")
@@ -180,7 +180,7 @@ def pnl_chart(start_timestamp: int, end_timestamp: int, prices: List[Price], tra
              list(map(lambda price: price.market_price, prices)), color='red')
 
     ax.set_ylabel('Cumulative PnL ($)')
-    ax2.set_ylabel('ETH/USD price ($)')
+    ax2.set_ylabel('Price in USD ($)')
     plt.title("Profit: {:,.2f} USD".format(np.sum(pnl_profits)))
 
     if output:
