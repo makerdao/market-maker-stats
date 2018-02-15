@@ -94,9 +94,15 @@ class OasisMarketMakerChart:
         start_timestamp = get_block_timestamp(self.infura, self.web3.eth.blockNumber - self.arguments.past_blocks)
         end_timestamp = int(time.time())
 
-        past_make = self.otc.past_make(self.arguments.past_blocks)
-        past_take = self.otc.past_take(self.arguments.past_blocks)
-        past_kill = self.otc.past_kill(self.arguments.past_blocks)
+        # If we only fetch log events from the last `past_blocks` blocks, the left hand side of the chart
+        # will have some bid and ask lines missing as these orders were very likely created some blocks
+        # earlier. So we also retrieve events from the blocks from the 24h before in order to minimize
+        # the chance of it happening.
+        block_lookback = 15*60*24
+
+        past_make = self.otc.past_make(self.arguments.past_blocks + block_lookback)
+        past_take = self.otc.past_take(self.arguments.past_blocks + block_lookback)
+        past_kill = self.otc.past_kill(self.arguments.past_blocks + block_lookback)
 
         def reduce_func(states, timestamp):
             if len(states) == 0:
@@ -124,13 +130,14 @@ class OasisMarketMakerChart:
                                    weth_address=self.weth_address)]
 
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
-        oasis_states = reduce(reduce_func, event_timestamps, [])
+        oasis_states = list(filter(lambda state: state.timestamp >= start_timestamp, reduce(reduce_func, event_timestamps, [])))
         gdax_states = self.get_gdax_states(start_timestamp, end_timestamp)
 
         states = sorted(oasis_states + gdax_states, key=lambda state: state.timestamp)
         states = self.consolidate_states(states)
 
-        trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, past_take)
+        trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address,
+                              list(filter(lambda log_take: log_take.timestamp >= start_timestamp, past_take)))
 
         self.draw(start_timestamp, end_timestamp, states, trades)
 
