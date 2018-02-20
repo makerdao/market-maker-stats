@@ -30,7 +30,7 @@ import requests
 import os
 import time
 import numpy as np
-from typing import List
+from typing import List, Optional
 
 from appdirs import user_cache_dir
 from web3 import Web3
@@ -94,6 +94,37 @@ def amount_in_usd_to_size(amount_in_usd: Wad):
     return max(min(float(amount_in_usd) / float(SIZE_PRICE_MAX) * SIZE_MAX, SIZE_MAX), SIZE_MIN)
 
 
+def get_block_timestamp(infura: Web3, block_number):
+    return infura.eth.getBlock(block_number).timestamp
+
+
+def get_event_timestamp(infura: Web3, event):
+    return infura.eth.getBlock(event.raw['blockHash']).timestamp
+
+
+def cache_folder():
+    db_folder = user_cache_dir("market-maker-stats", "maker")
+
+    try:
+        os.makedirs(db_folder)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
+    return db_folder
+
+
+def get_prices(gdax_price: Optional[str], price_feed: Optional[str], price_history_file: Optional[str], start_timestamp: int, end_timestamp: int):
+    if price_feed:
+        return get_price_feed(price_feed, start_timestamp, end_timestamp)
+    elif price_history_file:
+        return get_file_prices(price_history_file, start_timestamp, end_timestamp)
+    elif gdax_price:
+        return get_gdax_prices(gdax_price, start_timestamp, end_timestamp)
+    else:
+        return []
+
+
 def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
     prices = []
     with open(filename, "r") as file:
@@ -115,24 +146,13 @@ def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
     return sorted(prices, key=lambda price: price.timestamp)
 
 
-def get_block_timestamp(infura: Web3, block_number):
-    return infura.eth.getBlock(block_number).timestamp
-
-
-def get_event_timestamp(infura: Web3, event):
-    return infura.eth.getBlock(event.raw['blockHash']).timestamp
-
-
-def cache_folder():
-    db_folder = user_cache_dir("market-maker-stats", "maker")
-
-    try:
-        os.makedirs(db_folder)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
-
-    return db_folder
+def get_price_feed(endpoint: str, start_timestamp: int, end_timestamp: int):
+    data = requests.get(f"{endpoint}?min={start_timestamp}&max={end_timestamp}").json()['items']
+    return list(map(lambda item: Price(timestamp=item['timestamp'],
+                                       market_price=float(item['data']['price']) if 'price' in item['data'] else None,
+                                       market_price_min=None,
+                                       market_price_max=None,
+                                       volume=None), data))
 
 
 def get_gdax_prices(product: str, start_timestamp: int, end_timestamp: int):
