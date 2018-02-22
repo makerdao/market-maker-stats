@@ -26,17 +26,17 @@ import pytz
 from texttable import Texttable
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.radarrelay import radarrelay_trades, Trade
+from market_maker_stats.zrx import zrx_trades, Trade
 from market_maker_stats.util import format_timestamp, sort_trades
 from pymaker import Address
 from pymaker.zrx import ZrxExchange
 
 
-class RadarRelayMarketMakerTrades:
-    """Tool to list historical trades for the RadarRelay market maker keeper."""
+class ZrxMarketMakerTrades:
+    """Tool to list historical trades for the 0x market maker keeper."""
 
     def __init__(self, args: list):
-        parser = argparse.ArgumentParser(prog='radarrelay-market-maker-trades')
+        parser = argparse.ArgumentParser(prog='0x-market-maker-trades')
         parser.add_argument("--rpc-host", help="JSON-RPC host (default: `localhost')", default="localhost", type=str)
         parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
         parser.add_argument("--rpc-timeout", help="JSON-RPC timeout (in seconds, default: 60)", type=int, default=60)
@@ -78,7 +78,7 @@ class RadarRelayMarketMakerTrades:
 
     def main(self):
         past_fills = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
-        trades = radarrelay_trades(self.infura, self.market_maker_address, self.sai_address, [self.weth_address, self.old_weth_address], past_fills)
+        trades = zrx_trades(self.infura, self.market_maker_address, self.sai_address, [self.weth_address, self.old_weth_address], past_fills)
         trades = sort_trades(trades)
 
         if self.arguments.text:
@@ -140,4 +140,4 @@ class RadarRelayMarketMakerTrades:
 
 
 if __name__ == '__main__':
-    RadarRelayMarketMakerTrades(sys.argv[1:]).main()
+    ZrxMarketMakerTrades(sys.argv[1:]).main()

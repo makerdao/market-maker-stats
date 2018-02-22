@@ -36,7 +36,7 @@ class Trade:
         self.taker = taker
 
 
-def radarrelay_trades(infura: Web3, market_maker_address: Address, sai_address: Address, weth_addresses: List[Address], past_fills: List[LogFill]) -> list:
+def zrx_trades(infura: Web3, market_maker_address: Address, sai_address: Address, weth_addresses: List[Address], past_fills: List[LogFill]) -> list:
     assert(isinstance(infura, Web3))
     assert(isinstance(market_maker_address, Address))
     assert(isinstance(sai_address, Address))
