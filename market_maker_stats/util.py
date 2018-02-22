@@ -147,12 +147,15 @@ def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
 
 
 def get_price_feed(endpoint: str, start_timestamp: int, end_timestamp: int):
-    data = requests.get(f"{endpoint}?min={start_timestamp}&max={end_timestamp}").json()['items']
+    result = requests.get(f"{endpoint}?min={start_timestamp}&max={end_timestamp}")
+    if not result.ok:
+        raise Exception(f"Failed to fetch price feed history: {result.status_code} {result.reason}")
+
     return list(map(lambda item: Price(timestamp=item['timestamp'],
                                        market_price=float(item['data']['price']) if 'price' in item['data'] else None,
                                        market_price_min=None,
                                        market_price_max=None,
-                                       volume=None), data))
+                                       volume=None), result.json()['items']))
 
 
 def get_gdax_prices(product: str, start_timestamp: int, end_timestamp: int):
