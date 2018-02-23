@@ -110,7 +110,7 @@ def calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start):
     return profits
 
 
-def pnl_text(trades: list, vwaps: list, vwaps_start: int):
+def pnl_text(trades: list, vwaps: list, vwaps_start: int, output: Optional[str]):
     data = []
     total_dai_net = Wad(0)
     total_profit = 0
@@ -143,18 +143,24 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int):
     table.set_cols_width([11, 15, 20, 18, 30, 20, 25])
     table.add_rows([["Day", "# transactions", "Bought", "Sold", "Net bought", "Cumulative net bought", "Profit"]] + data)
 
-    print(f"")
-    print(f"PnL report for DAI market-making:")
-    print(f"")
-    print(table.draw())
-    print(f"")
-    print(f"The first and the last day of the report may not contain all trades.")
-    print(f"As a rolling VWAP window is used, last window of trades is excluded from profit calculation.")
-    print(f"")
-    print(f"Number of trades: {len(trades)}")
-    print(f"Total profit: " + "{:,.2f} USD".format(total_profit))
-    print(f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}")
+    result = f"" + "\n" + \
+             f"PnL report for DAI market-making:" + "\n" + \
+             f"" + "\n" + \
+             table.draw() + "\n" + \
+             f"" + "\n" + \
+             f"The first and the last day of the report may not contain all trades." + "\n" + \
+             f"As a rolling VWAP window is used, last window of trades is excluded from profit calculation." + "\n" + \
+             f"" + "\n" + \
+             f"Number of trades: {len(trades)}" + "\n" + \
+             f"Total profit: " + "{:,.2f} USD".format(total_profit) + "\n" + \
+             f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}"
 
+    if output is not None:
+        with open(output, "w") as file:
+            file.write(result)
+
+    else:
+        print(result)
 
 def pnl_chart(start_timestamp: int, end_timestamp: int, prices: List[Price], trades: list, vwaps: list, vwaps_start: int, output: Optional[str]):
     import matplotlib.dates as md

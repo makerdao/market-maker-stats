@@ -45,8 +45,7 @@ class ParadexMarketMakerPnl:
         parser.add_argument("--vwap-minutes", help="Rolling VWAP window size (default: 240)", type=int, default=240)
         parser.add_argument("--pair", help="Token pair to get the past trades for", required=True, type=str)
         parser.add_argument("--past", help="Past period of time for which to get the trades for (e.g. 3d)", required=True, type=str)
-        parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
-                                                   " Will get displayed on-screen if empty", required=False, type=str)
+        parser.add_argument("-o", "--output", help="File to save the chart or the table to", required=False, type=str)
 
         parser_mode = parser.add_mutually_exclusive_group(required=True)
         parser_mode.add_argument('--text', help="Show PnL as a text table", dest='text', action='store_true')
@@ -81,7 +80,7 @@ class ParadexMarketMakerPnl:
         vwaps_start = prices[0].timestamp
 
         if self.arguments.text:
-            pnl_text(trades, vwaps, vwaps_start)
+            pnl_text(trades, vwaps, vwaps_start, self.arguments.output)
 
         if self.arguments.chart:
             pnl_chart(start_timestamp, end_timestamp, prices, trades, vwaps, vwaps_start, self.arguments.output)
