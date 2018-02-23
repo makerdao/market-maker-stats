@@ -125,9 +125,7 @@ Example JSON output:
   "type": "Buy",
   "price": 990.57615003,
   "amount": 5.85517832,
-  "amount_symbol": "ETH",
   "money": 5800.00000000,
-  "money_symbol": "DAI",
   "taker": "0x8eb07c216cc1a46f135eb67d9ce9c7465893ccf9"
  },
  {
@@ -136,9 +134,7 @@ Example JSON output:
   "type": "Sell",
   "price": 990.57615003,
   "amount": 6.14822530,
-  "amount_symbol": "ETH",
   "money": 6090.28534500,
-  "money_symbol": "DAI",
   "taker": "0x78e134c3da7fb2b1b0e04e1bb3cdeb67d14e7a6d"
  }
 ]

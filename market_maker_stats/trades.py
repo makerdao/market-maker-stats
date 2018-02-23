@@ -32,9 +32,7 @@ def json_trades(trades: list):
             'type': "Sell" if trade.is_sell else "Buy",
             'price': float(trade.price),
             'amount': float(trade.amount),
-            'amount_symbol': trade.amount_symbol.upper(),
-            'money': float(trade.money),
-            'money_symbol': trade.money_symbol.upper()
+            'money': float(trade.money)
         }
 
     print(json.dumps(list(map(build_item, trades)), indent=True))
@@ -44,9 +42,6 @@ def text_trades(pair, base_token, quote_token, trades):
     assert(isinstance(trades, list))
 
     def table_row(trade) -> list:
-        assert(trade.amount_symbol.upper() == base_token)
-        assert(trade.money_symbol.upper() == quote_token)
-
         return [format_timestamp(trade.timestamp),
                 "Sell" if trade.is_sell else "Buy",
                 format(float(trade.price), '.8f'),

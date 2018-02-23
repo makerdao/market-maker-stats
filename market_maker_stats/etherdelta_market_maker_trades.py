@@ -94,9 +94,7 @@ class EtherDeltaMarketMakerTrades:
                 'type': "Sell" if trade.is_sell else "Buy",
                 'price': float(trade.price),
                 'amount': float(trade.amount),
-                'amount_symbol': self.base_token(),
                 'money': float(trade.money),
-                'money_symbol': self.quote_token(),
                 'taker': str(trade.taker)
             }
 
