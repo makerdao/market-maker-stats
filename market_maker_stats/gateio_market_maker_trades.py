@@ -35,6 +35,7 @@ class GateIOMarketMakerTrades:
         parser.add_argument("--gateio-timeout", help="Timeout for accessing the Gate.io API (in seconds, default: 9.5)", default=9.5, type=float)
         parser.add_argument("--pair", help="Token pair to get the past trades for", required=True, type=str)
         parser.add_argument("--past", help="Past period of time for which to get the trades for (e.g. 3d)", required=True, type=str)
+        parser.add_argument("-o", "--output", help="File to save the table or the JSON to", required=False, type=str)
 
         parser_mode = parser.add_mutually_exclusive_group(required=True)
         parser_mode.add_argument('--text', help="List trades as a text table", dest='text', action='store_true')
@@ -64,10 +65,10 @@ class GateIOMarketMakerTrades:
         trades = sort_trades(trades)
 
         if self.arguments.text:
-            text_trades(self.token_pair(), self.base_token(), self.quote_token(), trades)
+            text_trades(self.token_pair(), self.base_token(), self.quote_token(), trades, self.arguments.output)
 
         if self.arguments.json:
-            json_trades(trades)
+            json_trades(trades, self.arguments.output)
 
 
 if __name__ == '__main__':

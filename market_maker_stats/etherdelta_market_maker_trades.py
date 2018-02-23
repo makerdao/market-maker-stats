@@ -46,6 +46,7 @@ class EtherDeltaMarketMakerTrades:
         parser.add_argument("--eth-address", help="Ethereum address of the ETH token", required=True, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
+        parser.add_argument("-o", "--output", help="File to save the table or the JSON to", required=False, type=str)
 
         parser_mode = parser.add_mutually_exclusive_group(required=True)
         parser_mode.add_argument('--text', help="List trades as a text table", dest='text', action='store_true')
@@ -79,10 +80,10 @@ class EtherDeltaMarketMakerTrades:
         trades = sort_trades(trades)
 
         if self.arguments.text:
-            text_trades(self.token_pair(), self.base_token(), self.quote_token(), trades, include_taker=True)
+            text_trades(self.token_pair(), self.base_token(), self.quote_token(), trades, self.arguments.output, include_taker=True)
 
         if self.arguments.json:
-            json_trades(trades, include_taker=True)
+            json_trades(trades, self.arguments.output, include_taker=True)
 
 
 if __name__ == '__main__':

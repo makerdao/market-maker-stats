@@ -17,12 +17,13 @@
 
 import json
 import datetime
+from typing import Optional
 
 import pytz
 from texttable import Texttable
 
 
-def json_trades(trades: list, include_taker: bool = False):
+def json_trades(trades: list, output: Optional[str], include_taker: bool = False):
     assert(isinstance(trades, list))
     assert(isinstance(include_taker, bool))
 
@@ -41,10 +42,17 @@ def json_trades(trades: list, include_taker: bool = False):
 
         return item
 
-    print(json.dumps(list(map(build_item, trades)), indent=True))
+    result = json.dumps(list(map(build_item, trades)), indent=True)
+
+    if output is not None:
+        with open(output, "w") as file:
+            file.write(result)
+
+    else:
+        print(result)
 
 
-def text_trades(pair, base_token, quote_token, trades, include_taker: bool = False):
+def text_trades(pair, base_token, quote_token, trades, output: Optional[str], include_taker: bool = False):
     assert(isinstance(trades, list))
     assert(isinstance(include_taker, bool))
 
@@ -65,15 +73,22 @@ def text_trades(pair, base_token, quote_token, trades, include_taker: bool = Fal
                      f"Amount in {base_token}",
                      f"Value in {quote_token}"] + (["Taker"] if include_taker else [])] + list(map(table_row, trades)))
 
-    print(f"Trade history on the {pair} pair:")
-    print(f"")
-    print(table.draw())
-    print(f"")
-    print(f"Buy  = Somebody bought {quote_token} from the keeper")
-    print(f"Sell = Somebody sold {quote_token} to the keeper")
-    print(f"")
-    print(f"Number of trades: {len(trades)}")
-    print(f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}")
+    result = f"Trade history on the {pair} pair:" + "\n" + \
+             f"" + "\n" + \
+             table.draw() + "\n" + \
+             f"" + "\n" + \
+             f"Buy  = Somebody bought {quote_token} from the keeper" + "\n" + \
+             f"Sell = Somebody sold {quote_token} to the keeper" + "\n" + \
+             f"" + "\n" + \
+             f"Number of trades: {len(trades)}" + "\n" + \
+             f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}"
+
+    if output is not None:
+        with open(output, "w") as file:
+            file.write(result)
+
+    else:
+        print(result)
 
 
 def format_timestamp(timestamp: int):
