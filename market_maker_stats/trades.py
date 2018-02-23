@@ -22,11 +22,12 @@ import pytz
 from texttable import Texttable
 
 
-def json_trades(trades: list):
+def json_trades(trades: list, include_taker: bool = False):
     assert(isinstance(trades, list))
+    assert(isinstance(include_taker, bool))
 
     def build_item(trade) -> dict:
-        return {
+        item = {
             'datetime': format_timestamp(trade.timestamp),
             'timestamp': trade.timestamp,
             'type': "Sell" if trade.is_sell else "Buy",
@@ -35,28 +36,34 @@ def json_trades(trades: list):
             'money': float(trade.money)
         }
 
+        if include_taker:
+            item['taker'] = str(trade.taker)
+
+        return item
+
     print(json.dumps(list(map(build_item, trades)), indent=True))
 
 
-def text_trades(pair, base_token, quote_token, trades):
+def text_trades(pair, base_token, quote_token, trades, include_taker: bool = False):
     assert(isinstance(trades, list))
+    assert(isinstance(include_taker, bool))
 
     def table_row(trade) -> list:
         return [format_timestamp(trade.timestamp),
                 "Sell" if trade.is_sell else "Buy",
                 format(float(trade.price), '.8f'),
                 format(float(trade.amount), '.8f'),
-                format(float(trade.money), '.8f')]
+                format(float(trade.money), '.8f')] + ([str(trade.taker)] if include_taker else [])
 
     table = Texttable(max_width=250)
     table.set_deco(Texttable.HEADER)
-    table.set_cols_dtype(['t', 't', 't', 't', 't'])
-    table.set_cols_align(['l', 'l', 'r', 'r', 'r'])
+    table.set_cols_dtype(['t', 't', 't', 't', 't'] + (['t'] if include_taker else []))
+    table.set_cols_align(['l', 'l', 'r', 'r', 'r'] + (['l'] if include_taker else []))
     table.add_rows([["Date/time",
                      "Type",
                      "Price",
                      f"Amount in {base_token}",
-                     f"Value in {quote_token}"]] + list(map(table_row, trades)))
+                     f"Value in {quote_token}"] + (["Taker"] if include_taker else [])] + list(map(table_row, trades)))
 
     print(f"Trade history on the {pair} pair:")
     print(f"")

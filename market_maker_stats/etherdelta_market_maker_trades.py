@@ -27,6 +27,7 @@ from texttable import Texttable
 from web3 import Web3, HTTPProvider
 
 from market_maker_stats.etherdelta import etherdelta_trades, Trade
+from market_maker_stats.trades import text_trades, json_trades
 from market_maker_stats.util import format_timestamp, sort_trades
 from pymaker import Address
 from pymaker.etherdelta import EtherDelta
@@ -78,59 +79,10 @@ class EtherDeltaMarketMakerTrades:
         trades = sort_trades(trades)
 
         if self.arguments.text:
-            self.text_trades(trades)
-        elif self.arguments.json:
-            self.json_trades(trades)
-        else:
-            raise Exception("Unknown output mode")
+            text_trades(self.token_pair(), self.base_token(), self.quote_token(), trades, include_taker=True)
 
-    def json_trades(self, trades: List[Trade]):
-        assert(isinstance(trades, list))
-
-        def build_item(trade: Trade) -> dict:
-            return {
-                'datetime': format_timestamp(trade.timestamp),
-                'timestamp': trade.timestamp,
-                'type': "Sell" if trade.is_sell else "Buy",
-                'price': float(trade.price),
-                'amount': float(trade.amount),
-                'money': float(trade.money),
-                'taker': str(trade.taker)
-            }
-
-        print(json.dumps(list(map(build_item, trades)), indent=True))
-
-    def text_trades(self, trades: List[Trade]):
-        assert(isinstance(trades, list))
-
-        def table_row(trade: Trade) -> list:
-            return [format_timestamp(trade.timestamp),
-                    "Sell" if trade.is_sell else "Buy",
-                    format(float(trade.price), '.8f'),
-                    format(float(trade.amount), '.8f'),
-                    format(float(trade.money), '.8f'),
-                    str(trade.taker)]
-
-        table = Texttable(max_width=250)
-        table.set_deco(Texttable.HEADER)
-        table.set_cols_dtype(['t', 't', 't', 't', 't', 't'])
-        table.set_cols_align(['l', 'l', 'r', 'r', 'r', 'l'])
-        table.add_rows([["Date/time",
-                         "Type",
-                         "Price",
-                         f"Amount in {self.base_token()}",
-                         f"Value in {self.quote_token()}",
-                         f"Taker"]] + list(map(table_row, trades)))
-
-        print(f"Trade history on the {self.token_pair()} pair:")
-        print(f"")
-        print(table.draw())
-        print(f"")
-        print(f"Buy  = Somebody bought {self.quote_token()} from the keeper")
-        print(f"Sell = Somebody sold {self.quote_token()} to the keeper")
-        print(f"")
-        print(f"Number of trades: {len(trades)}")
-        print(f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}")
+        if self.arguments.json:
+            json_trades(trades, include_taker=True)
 
 
 if __name__ == '__main__':
