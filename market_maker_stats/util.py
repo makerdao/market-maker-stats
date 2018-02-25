@@ -139,7 +139,7 @@ def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
                                         market_price=price,
                                         market_price_min=None,
                                         market_price_max=None,
-                                        volume=None))
+                                        volume=record['volume'] if 'volume' in record else None))
             except:
                 pass
 
