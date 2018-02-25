@@ -119,7 +119,7 @@ def calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start):
     return profits
 
 
-def pnl_text(trades: list, vwaps: list, vwaps_start: int, output: Optional[str]):
+def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_token: str, output: Optional[str]):
     data = []
     total_dai_net = Wad(0)
     total_profit = 0
@@ -139,11 +139,11 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, output: Optional[str])
 
         data.append([day.strftime('%Y-%m-%d'),
                      len(day_trades),
-                     "{:,.2f} DAI".format(float(day_dai_bought)),
-                     "{:,.2f} DAI".format(float(day_dai_sold)),
-                     "{:,.2f} DAI".format(float(day_dai_net)),
-                     "{:,.2f} DAI".format(float(total_dai_net)),
-                     "{:,.2f} USD".format(day_profit)])
+                     "{:,.2f} {}".format(float(day_dai_bought), buy_token),
+                     "{:,.2f} {}".format(float(day_dai_sold), buy_token),
+                     "{:,.2f} {}".format(float(day_dai_net), buy_token),
+                     "{:,.2f} {}".format(float(total_dai_net), buy_token),
+                     "{:,.2f} {}".format(day_profit, buy_token)])
 
     table = Texttable(max_width=250)
     table.set_deco(Texttable.HEADER)
@@ -153,7 +153,7 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, output: Optional[str])
     table.add_rows([["Day", "# transactions", "Bought", "Sold", "Net bought", "Cumulative net bought", "Profit"]] + data)
 
     result = f"" + "\n" + \
-             f"PnL report for DAI market-making:" + "\n" + \
+             f"PnL report for {sell_token}/{buy_token} market-making:" + "\n" + \
              f"" + "\n" + \
              table.draw() + "\n" + \
              f"" + "\n" + \
@@ -161,7 +161,7 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, output: Optional[str])
              f"As a rolling VWAP window is used, last window of trades is excluded from profit calculation." + "\n" + \
              f"" + "\n" + \
              f"Number of trades: {len(trades)}" + "\n" + \
-             f"Total profit: " + "{:,.2f} USD".format(total_profit) + "\n" + \
+             f"Total profit: " + "{:,.2f} {}".format(total_profit, buy_token) + "\n" + \
              f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}"
 
     if output is not None:
@@ -171,7 +171,7 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, output: Optional[str])
     else:
         print(result)
 
-def pnl_chart(start_timestamp: int, end_timestamp: int, prices: List[Price], trades: list, vwaps: list, vwaps_start: int, output: Optional[str]):
+def pnl_chart(start_timestamp: int, end_timestamp: int, prices: List[Price], trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_token: str, output: Optional[str]):
     import matplotlib.dates as md
     import matplotlib.pyplot as plt
 
@@ -194,9 +194,9 @@ def pnl_chart(start_timestamp: int, end_timestamp: int, prices: List[Price], tra
     ax2.plot(list(map(lambda price: timestamp_to_x(price.timestamp), prices)),
              list(map(lambda price: price.market_price, prices)), color='red')
 
-    ax.set_ylabel('Cumulative PnL ($)')
-    ax2.set_ylabel('Price in USD ($)')
-    plt.title("Profit: {:,.2f} USD".format(np.sum(pnl_profits)))
+    ax.set_ylabel(f"Cumulative PnL ({buy_token})")
+    ax2.set_ylabel(f"{sell_token} price in {buy_token}")
+    plt.title("Profit: {:,.2f} {}".format(np.sum(pnl_profits), buy_token))
 
     if output:
         plt.savefig(fname=output, dpi=300, bbox_inches='tight', pad_inches=0)
