@@ -21,7 +21,7 @@ import sys
 import time
 
 from market_maker_stats.pnl import get_approx_vwaps, pnl_text, pnl_chart
-from market_maker_stats.util import to_seconds, get_gdax_prices, sort_trades_for_pnl
+from market_maker_stats.util import to_seconds, get_gdax_prices, sort_trades_for_pnl, get_prices
 from pyexchange.bibox import BiboxApi
 
 
@@ -35,7 +35,9 @@ class BiboxMarketMakerPnl:
         parser.add_argument("--bibox-secret", help="Secret for the Bibox API", required=True, type=str)
         parser.add_argument("--bibox-timeout", help="Timeout for accessing the Bibox API", default=9.5, type=float)
         parser.add_argument("--bibox-retry-count", help="Retry count for accessing the Bibox API (default: 20)", default=20, type=int)
-        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", required=True, type=str)
+        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", type=str)
+        parser.add_argument("--price-feed", help="Price endpoint to use as the price history source", type=str)
+        parser.add_argument("--price-history-file", help="File to use as the price history source", type=str)
         parser.add_argument("--vwap-minutes", help="Rolling VWAP window size (default: 240)", type=int, default=240)
         parser.add_argument("--pair", help="Token pair to get the past trades for", required=True, type=str)
         parser.add_argument("--past", help="Past period of time for which to get the trades for (e.g. 3d)", required=True, type=str)
@@ -65,7 +67,7 @@ class BiboxMarketMakerPnl:
         trades = self.bibox_api.get_trades(self.arguments.pair, True, self.arguments.bibox_retry_count, from_timestamp=start_timestamp)
         trades = sort_trades_for_pnl(trades)
 
-        prices = get_gdax_prices(self.arguments.gdax_price, start_timestamp, end_timestamp)
+        prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, self.arguments.price_history_file, start_timestamp, end_timestamp)
         vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
         vwaps_start = prices[0].timestamp
 

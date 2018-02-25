@@ -24,7 +24,7 @@ from web3 import Web3, HTTPProvider
 
 from market_maker_stats.pnl import get_approx_vwaps, pnl_text, pnl_chart
 from market_maker_stats.zrx import zrx_trades
-from market_maker_stats.util import get_block_timestamp, sort_trades_for_pnl, get_gdax_prices
+from market_maker_stats.util import get_block_timestamp, sort_trades_for_pnl, get_gdax_prices, get_prices
 from pymaker import Address
 from pymaker.zrx import ZrxExchange
 
@@ -42,7 +42,9 @@ class ZrxMarketMakerPnl:
         parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
         parser.add_argument("--old-weth-address", help="Ethereum address of the old WETH token", required=True, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
-        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", required=True, type=str)
+        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", type=str)
+        parser.add_argument("--price-feed", help="Price endpoint to use as the price history source", type=str)
+        parser.add_argument("--price-history-file", help="File to use as the price history source", type=str)
         parser.add_argument("--vwap-minutes", help="Rolling VWAP window size (default: 240)", type=int, default=240)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="File to save the chart or the table to", required=False, type=str)
@@ -77,7 +79,7 @@ class ZrxMarketMakerPnl:
         trades = zrx_trades(self.infura, self.market_maker_address, self.sai_address, [self.weth_address, self.old_weth_address], events)
         trades = sort_trades_for_pnl(trades)
 
-        prices = get_gdax_prices(self.arguments.gdax_price, start_timestamp, end_timestamp)
+        prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, self.arguments.price_history_file, start_timestamp, end_timestamp)
         vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
         vwaps_start = prices[0].timestamp
 
