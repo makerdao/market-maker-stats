@@ -23,6 +23,7 @@ The following tools are available in this repository:
 * `bibox-market-maker-pnl` (profitability calculation tool for Bibox),
 * `bibox-market-maker-trades` (trade history dumping tool for Bibox),
 * `gateio-market-maker-chart` (trade chart tool for gate.io),
+* `gateio-market-maker-pnl` (profitability calculation tool for gate.io),
 * `gateio-market-maker-trades` (trade history dumping tool for gate.io).
 
 <https://chat.makerdao.com/channel/keeper>
