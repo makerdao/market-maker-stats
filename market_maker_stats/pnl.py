@@ -35,30 +35,17 @@ def rolling_window(a, window):
 
 # prices can have gaps, but for PnL calculation we need minute-by-minute data, that's why we fill the gaps.
 # zero price and zero volume is fine, this way it won't count towards vwap as we don't know what was there anyway
-# in case there is more than one sample per minute, we only leave the first one
 def granularize_prices(prices: list) -> list:
-    def get_minute(ts):
-        return datetime.datetime.fromtimestamp(ts).year * 100000000 + \
-               datetime.datetime.fromtimestamp(ts).month * 1000000 + \
-               datetime.datetime.fromtimestamp(ts).day * 10000 + \
-               datetime.datetime.fromtimestamp(ts).hour * 100 + \
-               datetime.datetime.fromtimestamp(ts).minute
-
     granular_prices = []
     last_timestamp = -1
     for price in prices:
         if last_timestamp != -1:
-            minute_increment = get_minute(price.timestamp) - get_minute(last_timestamp)
-            for i in range(0, minute_increment-1):
+            number_of_missing_samples = int((price.timestamp - last_timestamp - 60) / 60)
+            for i in range(0, number_of_missing_samples):
                 granular_prices.append(Price(last_timestamp + 60*(i+1), 0.0, 0.0, 0.0, 0.0))
 
-            if minute_increment > 0:
-                granular_prices.append(price)
-
-        else:
-            granular_prices.append(price)
-
         last_timestamp = price.timestamp
+        granular_prices.append(price)
 
     return granular_prices
 
