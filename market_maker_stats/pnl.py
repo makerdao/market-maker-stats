@@ -120,6 +120,11 @@ def calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start):
 
 
 def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_token: str, output: Optional[str]):
+    if buy_token.upper() in ['DAI', 'USD', 'USDT']:
+        amount_format = "{:,.2f} " + buy_token.upper()
+    else:
+        amount_format = "{:,.4f} " + buy_token.upper()
+
     data = []
     total_dai_net = Wad(0)
     total_profit = 0
@@ -139,11 +144,11 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
 
         data.append([day.strftime('%Y-%m-%d'),
                      len(day_trades),
-                     "{:,.2f} {}".format(float(day_dai_bought), buy_token),
-                     "{:,.2f} {}".format(float(day_dai_sold), buy_token),
-                     "{:,.2f} {}".format(float(day_dai_net), buy_token),
-                     "{:,.2f} {}".format(float(total_dai_net), buy_token),
-                     "{:,.2f} {}".format(day_profit, buy_token)])
+                     amount_format.format(float(day_dai_bought)),
+                     amount_format.format(float(day_dai_sold)),
+                     amount_format.format(float(day_dai_net)),
+                     amount_format.format(float(total_dai_net)),
+                     amount_format.format(day_profit)])
 
     table = Texttable(max_width=250)
     table.set_deco(Texttable.HEADER)
@@ -161,7 +166,7 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
              f"As a rolling VWAP window is used, last window of trades is excluded from profit calculation." + "\n" + \
              f"" + "\n" + \
              f"Number of trades: {len(trades)}" + "\n" + \
-             f"Total profit: " + "{:,.2f} {}".format(total_profit, buy_token) + "\n" + \
+             f"Total profit: " + amount_format.format(total_profit) + "\n" + \
              f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}"
 
     if output is not None:
