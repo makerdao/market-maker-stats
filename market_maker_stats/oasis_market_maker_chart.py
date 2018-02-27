@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import logging
 import sys
 import time
 from functools import reduce
@@ -26,8 +25,8 @@ from web3 import Web3, HTTPProvider
 
 from market_maker_stats.chart import initialize_charting
 from market_maker_stats.oasis import oasis_trades, Trade
-from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, iso_8601, Price, get_block_timestamp, \
-    timestamp_to_x, initialize_logging
+from market_maker_stats.util import amount_in_usd_to_size, get_block_timestamp, \
+    timestamp_to_x, initialize_logging, get_prices
 from pymaker import Address
 from pymaker.numeric import Wad
 from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
@@ -74,7 +73,9 @@ class OasisMarketMakerChart:
         parser.add_argument("--buy-token-address", help="Ethereum address of the buy token", required=True, type=str)
         parser.add_argument("--sell-token-address", help="Ethereum address of the sell token", required=True,type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
-        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", required=True, type=str)
+        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", type=str)
+        parser.add_argument("--price-feed", help="Price endpoint to use as the price history source", type=str)
+        parser.add_argument("--price-history-file", help="File to use as the price history source", type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
                                                    " Will get displayed on-screen if empty", required=False, type=str)
@@ -132,9 +133,9 @@ class OasisMarketMakerChart:
 
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
         oasis_states = list(filter(lambda state: state.timestamp >= start_timestamp, reduce(reduce_func, event_timestamps, [])))
-        gdax_states = self.get_gdax_states(start_timestamp, end_timestamp)
+        price_states = self.get_price_states(start_timestamp, end_timestamp)
 
-        states = sorted(oasis_states + gdax_states, key=lambda state: state.timestamp)
+        states = sorted(oasis_states + price_states, key=lambda state: state.timestamp)
         states = self.consolidate_states(states)
 
         trades = oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address,
@@ -158,8 +159,8 @@ class OasisMarketMakerChart:
 
         return states
 
-    def get_gdax_states(self, start_timestamp: int, end_timestamp: int):
-        prices = get_gdax_prices(self.arguments.gdax_price, start_timestamp, end_timestamp)
+    def get_price_states(self, start_timestamp: int, end_timestamp: int):
+        prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, self.arguments.price_history_file, start_timestamp, end_timestamp)
 
         return list(map(lambda price: State(timestamp=price.timestamp,
                                             order_book=None,
