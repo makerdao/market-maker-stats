@@ -67,13 +67,10 @@ class ZrxMarketMakerTrades:
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
         logging.getLogger("filelock").setLevel(logging.WARNING)
 
-    def token_pair(self):
-        return "ETH/DAI"
-
-    def base_token(self):
+    def sell_token(self):
         return "ETH"
 
-    def quote_token(self):
+    def buy_token(self):
         return "DAI"
 
     def main(self):
@@ -82,7 +79,7 @@ class ZrxMarketMakerTrades:
         trades = sort_trades(trades)
 
         if self.arguments.text:
-            text_trades(self.token_pair(), self.base_token(), self.quote_token(), trades, self.arguments.output, include_taker=True)
+            text_trades(self.buy_token(), self.sell_token(), trades, self.arguments.output, include_taker=True)
 
         if self.arguments.json:
             json_trades(trades, self.arguments.output, include_taker=True)

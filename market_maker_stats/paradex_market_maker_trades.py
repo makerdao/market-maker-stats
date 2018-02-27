@@ -63,13 +63,10 @@ class ParadexMarketMakerTrades:
 
         initialize_logging()
 
-    def token_pair(self):
-        return self.arguments.pair.upper()
-
-    def base_token(self):
+    def sell_token(self):
         return self.arguments.pair.split('/')[0].upper()
 
-    def quote_token(self):
+    def buy_token(self):
         return self.arguments.pair.split('/')[1].upper()
 
     def main(self):
@@ -78,7 +75,7 @@ class ParadexMarketMakerTrades:
         trades = sort_trades(trades)
 
         if self.arguments.text:
-            text_trades(self.token_pair(), self.base_token(), self.quote_token(), trades, self.arguments.output)
+            text_trades(self.buy_token(), self.sell_token(), trades, self.arguments.output)
 
         if self.arguments.json:
             json_trades(trades, self.arguments.output)

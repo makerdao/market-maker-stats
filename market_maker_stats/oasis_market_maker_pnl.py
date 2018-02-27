@@ -38,15 +38,15 @@ class OasisMarketMakerPnl:
         parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
         parser.add_argument("--rpc-timeout", help="JSON-RPC timeout (in seconds, default: 60)", type=int, default=60)
         parser.add_argument("--oasis-address", help="Ethereum address of the OasisDEX contract", required=True, type=str)
-        parser.add_argument("--sai-address", help="Ethereum address of the SAI token", required=True, type=str)
-        parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", type=str)
         parser.add_argument("--price-feed", help="Price endpoint to use as the price history source", type=str)
         parser.add_argument("--price-history-file", help="File to use as the price history source", type=str)
         parser.add_argument("--vwap-minutes", help="Rolling VWAP window size (default: 240)", type=int, default=240)
         parser.add_argument("--buy-token", help="Name of the buy token", required=True, type=str)
+        parser.add_argument("--buy-token-address", help="Ethereum address of the buy token", required=True, type=str)
         parser.add_argument("--sell-token", help="Name of the sell token", required=True, type=str)
+        parser.add_argument("--sell-token-address", help="Ethereum address of the sell token", required=True,type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="File to save the chart or the table to", required=False, type=str)
 
@@ -59,8 +59,10 @@ class OasisMarketMakerPnl:
         self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}",
                                       request_kwargs={'timeout': self.arguments.rpc_timeout}))
         self.infura = Web3(HTTPProvider(endpoint_uri=f"https://mainnet.infura.io/", request_kwargs={'timeout': 120}))
-        self.sai_address = Address(self.arguments.sai_address)
-        self.weth_address = Address(self.arguments.weth_address)
+        self.buy_token = self.arguments.buy_token
+        self.buy_token_address = Address(self.arguments.buy_token_address)
+        self.sell_token = self.arguments.sell_token
+        self.sell_token_address = Address(self.arguments.sell_token_address)
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.otc = SimpleMarket(web3=self.web3, address=Address(self.arguments.oasis_address))
 
@@ -76,7 +78,7 @@ class OasisMarketMakerPnl:
         end_timestamp = int(time.time())
 
         events = self.otc.past_take(self.arguments.past_blocks)
-        trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address, events)
+        trades = oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, events)
         trades = sort_trades_for_pnl(trades)
 
         prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, self.arguments.price_history_file, start_timestamp, end_timestamp)
@@ -84,10 +86,10 @@ class OasisMarketMakerPnl:
         vwaps_start = prices[0].timestamp
 
         if self.arguments.text:
-            pnl_text(trades, vwaps, vwaps_start, self.arguments.buy_token, self.arguments.sell_token, self.arguments.vwap_minutes, self.arguments.output)
+            pnl_text(trades, vwaps, vwaps_start, self.buy_token, self.sell_token, self.arguments.vwap_minutes, self.arguments.output)
 
         if self.arguments.chart:
-            pnl_chart(start_timestamp, end_timestamp, prices, trades, vwaps, vwaps_start, self.arguments.buy_token, self.arguments.sell_token, self.arguments.output)
+            pnl_chart(start_timestamp, end_timestamp, prices, trades, vwaps, vwaps_start, self.buy_token, self.sell_token, self.arguments.output)
 
 
 if __name__ == '__main__':

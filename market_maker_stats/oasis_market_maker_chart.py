@@ -34,12 +34,12 @@ from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
 
 
 class State:
-    def __init__(self, timestamp: int, order_book: List[Order], market_price: Wad, sai_address: Address, weth_address: Address):
+    def __init__(self, timestamp: int, order_book: List[Order], market_price: Wad, buy_token_address: Address, sell_token_address: Address):
         self.timestamp = timestamp
         self.order_book = order_book
         self.market_price = market_price
-        self.sai_address = sai_address
-        self.weth_address = weth_address
+        self.buy_token_address = buy_token_address
+        self.sell_token_address = sell_token_address
 
     def closest_sell_price(self) -> Optional[Wad]:
         return min(self.sell_prices(), default=None)
@@ -48,15 +48,15 @@ class State:
         return max(self.buy_prices(), default=None)
 
     def sell_orders(self) -> List[Order]:
-        return list(filter(lambda order: order.buy_token == self.sai_address and
-                                         order.pay_token == self.weth_address, self.order_book))
+        return list(filter(lambda order: order.buy_token == self.buy_token_address and
+                                         order.pay_token == self.sell_token_address, self.order_book))
 
     def sell_prices(self) -> List[Wad]:
         return list(map(lambda order: order.buy_to_sell_price, self.sell_orders()))
 
     def buy_orders(self) -> List[Order]:
-        return list(filter(lambda order: order.buy_token == self.weth_address and
-                                         order.pay_token == self.sai_address, self.order_book))
+        return list(filter(lambda order: order.buy_token == self.sell_token_address and
+                                         order.pay_token == self.buy_token_address, self.order_book))
 
     def buy_prices(self) -> List[Wad]:
         return list(map(lambda order: order.sell_to_buy_price, self.buy_orders()))
@@ -71,8 +71,8 @@ class OasisMarketMakerChart:
         parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
         parser.add_argument("--rpc-timeout", help="JSON-RPC timeout (in seconds, default: 60)", type=int, default=60)
         parser.add_argument("--oasis-address", help="Ethereum address of the OasisDEX contract", required=True, type=str)
-        parser.add_argument("--sai-address", help="Ethereum address of the SAI token", required=True, type=str)
-        parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
+        parser.add_argument("--buy-token-address", help="Ethereum address of the buy token", required=True, type=str)
+        parser.add_argument("--sell-token-address", help="Ethereum address of the sell token", required=True,type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", required=True, type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
@@ -83,8 +83,8 @@ class OasisMarketMakerChart:
         self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}",
                                       request_kwargs={'timeout': self.arguments.rpc_timeout}))
         self.infura = Web3(HTTPProvider(endpoint_uri=f"https://mainnet.infura.io/", request_kwargs={'timeout': 120}))
-        self.sai_address = Address(self.arguments.sai_address)
-        self.weth_address = Address(self.arguments.weth_address)
+        self.buy_token_address = Address(self.arguments.buy_token_address)
+        self.sell_token_address = Address(self.arguments.sell_token_address)
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.otc = SimpleMarket(web3=self.web3, address=Address(self.arguments.oasis_address))
 
@@ -127,8 +127,8 @@ class OasisMarketMakerChart:
             return states + [State(timestamp=timestamp,
                                    order_book=order_book,
                                    market_price=None,
-                                   sai_address=self.sai_address,
-                                   weth_address=self.weth_address)]
+                                   buy_token_address=self.buy_token_address,
+                                   sell_token_address=self.sell_token_address)]
 
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
         oasis_states = list(filter(lambda state: state.timestamp >= start_timestamp, reduce(reduce_func, event_timestamps, [])))
@@ -137,7 +137,7 @@ class OasisMarketMakerChart:
         states = sorted(oasis_states + gdax_states, key=lambda state: state.timestamp)
         states = self.consolidate_states(states)
 
-        trades = oasis_trades(self.market_maker_address, self.sai_address, self.weth_address,
+        trades = oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address,
                               list(filter(lambda log_take: log_take.timestamp >= start_timestamp, past_take)))
 
         self.draw(start_timestamp, end_timestamp, states, trades)
@@ -164,8 +164,8 @@ class OasisMarketMakerChart:
         return list(map(lambda price: State(timestamp=price.timestamp,
                                             order_book=None,
                                             market_price=price.market_price,
-                                            sai_address=self.sai_address,
-                                            weth_address=self.weth_address), prices))
+                                            buy_token_address=self.buy_token_address,
+                                            sell_token_address=self.sell_token_address), prices))
 
     def to_size(self, trade: Trade):
         return amount_in_usd_to_size(trade.money)
