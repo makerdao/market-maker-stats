@@ -119,7 +119,7 @@ def calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start):
     return profits
 
 
-def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_token: str, output: Optional[str]):
+def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_token: str, vwap_minutes: int, output: Optional[str]):
     if buy_token.upper() in ['DAI', 'USD', 'USDT']:
         amount_format = "{:,.2f} " + buy_token.upper()
     else:
@@ -163,7 +163,7 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
              table.draw() + "\n" + \
              f"" + "\n" + \
              f"The first and the last day of the report may not contain all trades." + "\n" + \
-             f"As a rolling VWAP window is used, last window of trades is excluded from profit calculation." + "\n" + \
+             f"The last window of {vwap_minutes} minutes of trades is excluded from profit calculation." + "\n" + \
              f"" + "\n" + \
              f"Number of trades: {len(trades)}" + "\n" + \
              f"Total profit: " + amount_format.format(total_profit) + "\n" + \

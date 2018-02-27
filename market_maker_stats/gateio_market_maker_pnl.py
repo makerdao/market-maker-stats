@@ -71,7 +71,7 @@ class GateIOMarketMakerPnl:
         vwaps_start = prices[0].timestamp
 
         if self.arguments.text:
-            pnl_text(trades, vwaps, vwaps_start, self.arguments.buy_token, self.arguments.sell_token, self.arguments.output)
+            pnl_text(trades, vwaps, vwaps_start, self.arguments.buy_token, self.arguments.sell_token, self.arguments.vwap_minutes, self.arguments.output)
 
         if self.arguments.chart:
             pnl_chart(start_timestamp, end_timestamp, prices, trades, vwaps, vwaps_start, self.arguments.buy_token, self.arguments.sell_token, self.arguments.output)
