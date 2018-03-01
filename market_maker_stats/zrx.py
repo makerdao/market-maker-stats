@@ -31,7 +31,6 @@ class Trade:
         self.price = price
         self.amount = amount
         self.money = money
-        self.is_buy = is_buy
         self.is_sell = is_sell
         self.taker = taker
 
