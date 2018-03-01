@@ -26,12 +26,11 @@ from pymaker.numeric import Wad
 
 
 class Trade:
-    def __init__(self, timestamp: int, price: Wad, amount: Wad, money: Wad, is_buy: bool, is_sell: bool, taker: Address):
+    def __init__(self, timestamp: int, price: Wad, amount: Wad, money: Wad, is_sell: bool, taker: Address):
         self.timestamp = timestamp
         self.price = price
         self.amount = amount
         self.money = money
-        self.is_buy = is_buy
         self.is_sell = is_sell
         self.taker = taker
 
@@ -44,11 +43,11 @@ def etherdelta_trades(infura: Web3, market_maker_address: Address, sai_address: 
     assert(isinstance(past_trades, list))
 
     def sell_trades() -> List[Trade]:
-        return list(map(lambda log_trade: Trade(get_event_timestamp(infura, log_trade), log_trade.give_amount / log_trade.take_amount, log_trade.take_amount, log_trade.give_amount, False, True, log_trade.taker),
+        return list(map(lambda log_trade: Trade(get_event_timestamp(infura, log_trade), log_trade.give_amount / log_trade.take_amount, log_trade.take_amount, log_trade.give_amount, True, log_trade.taker),
                     filter(lambda log_trade: log_trade.maker == market_maker_address and log_trade.buy_token == sai_address and log_trade.pay_token == eth_address, past_trades)))
 
     def buy_trades() -> List[Trade]:
-        return list(map(lambda log_trade: Trade(get_event_timestamp(infura, log_trade), log_trade.take_amount / log_trade.give_amount, log_trade.give_amount, log_trade.take_amount, True, False, log_trade.taker),
+        return list(map(lambda log_trade: Trade(get_event_timestamp(infura, log_trade), log_trade.take_amount / log_trade.give_amount, log_trade.give_amount, log_trade.take_amount, False, log_trade.taker),
                     filter(lambda log_trade: log_trade.maker == market_maker_address and log_trade.buy_token == eth_address and log_trade.pay_token == sai_address, past_trades)))
 
     trades = sell_trades() + buy_trades()

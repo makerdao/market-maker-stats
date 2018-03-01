@@ -196,7 +196,7 @@ class OasisMarketMakerChart:
         sell_s = list(map(self.to_size, sell_trades))
         plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=2)
 
-        buy_trades = list(filter(lambda trade: trade.is_buy, trades))
+        buy_trades = list(filter(lambda trade: not trade.is_sell, trades))
         buy_x = list(map(timestamp_to_x, map(lambda trade: trade.timestamp, buy_trades)))
         buy_y = list(map(lambda trade: trade.price, buy_trades))
         buy_s = list(map(self.to_size, buy_trades))
