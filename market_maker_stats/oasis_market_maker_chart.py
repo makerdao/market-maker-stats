@@ -26,7 +26,7 @@ from web3 import Web3, HTTPProvider
 from market_maker_stats.chart import initialize_charting
 from market_maker_stats.oasis import oasis_trades, Trade
 from market_maker_stats.util import amount_in_usd_to_size, get_block_timestamp, \
-    timestamp_to_x, initialize_logging, get_prices
+    timestamp_to_x, initialize_logging, get_prices, Price
 from pymaker import Address
 from pymaker.numeric import Wad
 from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
@@ -76,6 +76,8 @@ class OasisMarketMakerChart:
         parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", type=str)
         parser.add_argument("--price-feed", help="Price endpoint to use as the price history source", type=str)
         parser.add_argument("--price-history-file", help="File to use as the price history source", type=str)
+        parser.add_argument("--alternative-price-feed", help="Price endpoint to use as the alternative price history source", type=str)
+        parser.add_argument("--alternative-price-history-file", help="File to use as the alternative price history source", type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
                                                    " Will get displayed on-screen if empty", required=False, type=str)
@@ -135,13 +137,15 @@ class OasisMarketMakerChart:
         oasis_states = list(filter(lambda state: state.timestamp >= start_timestamp, reduce(reduce_func, event_timestamps, [])))
         price_states = self.get_price_states(start_timestamp, end_timestamp)
 
+        alternative_prices = get_prices(None, self.arguments.alternative_price_feed, self.arguments.alternative_price_history_file, start_timestamp, end_timestamp)
+
         states = sorted(oasis_states + price_states, key=lambda state: state.timestamp)
         states = self.consolidate_states(states)
 
         trades = oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address,
                               list(filter(lambda log_take: log_take.timestamp >= start_timestamp, past_take)))
 
-        self.draw(start_timestamp, end_timestamp, states, trades)
+        self.draw(start_timestamp, end_timestamp, states, trades, alternative_prices)
 
     def consolidate_states(self, states):
         last_market_price = None
@@ -171,7 +175,7 @@ class OasisMarketMakerChart:
     def to_size(self, trade: Trade):
         return amount_in_usd_to_size(trade.money)
 
-    def draw(self, start_timestamp: int, end_timestamp: int, states: List[State], trades: List[Trade]):
+    def draw(self, start_timestamp: int, end_timestamp: int, states: List[State], trades: List[Trade], alternative_prices: List[Price]):
         import matplotlib.dates as md
         import matplotlib.pyplot as plt
 
@@ -189,6 +193,11 @@ class OasisMarketMakerChart:
         plt.plot_date(timestamps, closest_sell_prices, 'b-', zorder=1)
         plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=1)
         plt.plot_date(timestamps, market_prices, 'r-', zorder=1)
+
+        if len(alternative_prices) > 0:
+            alternative_timestamps = list(map(lambda price: timestamp_to_x(price.timestamp), alternative_prices))
+            alternative_market_prices = list(map(lambda price: price.market_price, alternative_prices))
+            plt.plot_date(alternative_timestamps, alternative_market_prices, 'y-', zorder=1)
 
         sell_trades = list(filter(lambda trade: trade.is_sell, trades))
         sell_x = list(map(timestamp_to_x, map(lambda trade: trade.timestamp, sell_trades)))
