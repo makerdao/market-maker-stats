@@ -126,7 +126,8 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
         amount_format = "{:,.4f} " + buy_token.upper()
 
     data = []
-    total_dai_net = Wad(0)
+    total_volume = Wad(0)
+    total_net = Wad(0)
     total_profit = 0
     for day, day_trades in groupby(trades, lambda trade: get_day(trade.timestamp)):
         day_trades = list(day_trades)
@@ -134,39 +135,43 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
         pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(day_trades)
         pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
 
-        day_dai_bought = sum_wads(map(lambda trade: trade.money, filter(lambda trade: trade.is_sell, day_trades)))
-        day_dai_sold = sum_wads(map(lambda trade: trade.money, filter(lambda trade: not trade.is_sell, day_trades)))
-        day_dai_net = day_dai_bought - day_dai_sold
+        day_volume = sum_wads(map(lambda trade: trade.money, day_trades))
+        day_bought = sum_wads(map(lambda trade: trade.money, filter(lambda trade: trade.is_sell, day_trades)))
+        day_sold = sum_wads(map(lambda trade: trade.money, filter(lambda trade: not trade.is_sell, day_trades)))
+        day_net = day_bought - day_sold
         day_profit = np.sum(pnl_profits)
 
-        total_dai_net += day_dai_net
+        total_volume += day_volume
+        total_net += day_net
         total_profit += day_profit
 
         data.append([day.strftime('%Y-%m-%d'),
                      len(day_trades),
-                     amount_format.format(float(day_dai_bought)),
-                     amount_format.format(float(day_dai_sold)),
-                     amount_format.format(float(day_dai_net)),
-                     amount_format.format(float(total_dai_net)),
+                     amount_format.format(float(day_volume)),
+                     amount_format.format(float(day_bought)),
+                     amount_format.format(float(day_sold)),
+                     amount_format.format(float(day_net)),
+                     amount_format.format(float(total_net)),
                      amount_format.format(day_profit)])
 
     table = Texttable(max_width=250)
     table.set_deco(Texttable.HEADER)
-    table.set_cols_dtype(['t', 't', 't', 't', 't', 't', 't'])
-    table.set_cols_align(['l', 'r', 'r', 'r', 'r', 'r', 'r'])
-    table.set_cols_width([11, 15, 20, 18, 30, 20, 25])
-    table.add_rows([["Day", "# transactions", "Bought", "Sold", "Net bought", "Cumulative net bought", "Profit"]] + data)
+    table.set_cols_dtype(['t', 't', 't', 't', 't', 't', 't', 't'])
+    table.set_cols_align(['l', 'r', 'r', 'r', 'r', 'r', 'r', 'r'])
+    table.set_cols_width([11, 9, 18, 22, 18, 26, 20, 25])
+    table.add_rows([["Day", "# trades", "Volume", "Bought", "Sold", "Net bought", "Cumulative net bought", "Profit"]] + data)
 
-    result = f"" + "\n" + \
-             f"PnL report for {sell_token}/{buy_token} market-making:" + "\n" + \
+    result = f"PnL report for {sell_token}/{buy_token} market-making:" + "\n" + \
              f"" + "\n" + \
              table.draw() + "\n" + \
              f"" + "\n" + \
              f"The first and the last day of the report may not contain all trades." + "\n" + \
              f"The last window of {vwap_minutes} minutes of trades is excluded from profit calculation." + "\n" + \
              f"" + "\n" + \
-             f"Number of trades: {len(trades)}" + "\n" + \
+             f"Total number of trades: {len(trades)}" + "\n" + \
+             f"Total volume: " + amount_format.format(float(total_volume)) + "\n" + \
              f"Total profit: " + amount_format.format(total_profit) + "\n" + \
+             f"" + "\n" + \
              f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}"
 
     if output is not None:
@@ -175,6 +180,7 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
 
     else:
         print(result)
+
 
 def pnl_chart(start_timestamp: int, end_timestamp: int, prices: List[Price], trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_token: str, output: Optional[str]):
     import matplotlib.dates as md
