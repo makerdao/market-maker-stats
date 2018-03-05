@@ -23,7 +23,7 @@ from typing import List, Optional
 
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.chart import initialize_charting
+from market_maker_stats.chart import initialize_charting, prepare_prices_for_charting
 from market_maker_stats.oasis import oasis_trades, Trade
 from market_maker_stats.util import amount_in_usd_to_size, get_block_timestamp, \
     timestamp_to_x, initialize_logging, get_prices, Price
@@ -33,10 +33,9 @@ from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
 
 
 class State:
-    def __init__(self, timestamp: int, order_book: List[Order], market_price: Wad, buy_token_address: Address, sell_token_address: Address):
+    def __init__(self, timestamp: int, order_book: List[Order], buy_token_address: Address, sell_token_address: Address):
         self.timestamp = timestamp
         self.order_book = order_book
-        self.market_price = market_price
         self.buy_token_address = buy_token_address
         self.sell_token_address = sell_token_address
 
@@ -129,53 +128,43 @@ class OasisMarketMakerChart:
 
             return states + [State(timestamp=timestamp,
                                    order_book=order_book,
-                                   market_price=None,
                                    buy_token_address=self.buy_token_address,
                                    sell_token_address=self.sell_token_address)]
 
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
-        oasis_states = list(filter(lambda state: state.timestamp >= start_timestamp, reduce(reduce_func, event_timestamps, [])))
-        price_states = self.get_price_states(start_timestamp, end_timestamp)
+        states_timestamps = self.tighten_timestamps(event_timestamps)
+        states = list(filter(lambda state: state.timestamp >= start_timestamp, reduce(reduce_func, states_timestamps, [])))
+        states = sorted(states, key=lambda state: state.timestamp)
 
+        prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, self.arguments.price_history_file, start_timestamp, end_timestamp)
         alternative_prices = get_prices(None, self.arguments.alternative_price_feed, self.arguments.alternative_price_history_file, start_timestamp, end_timestamp)
-
-        states = sorted(oasis_states + price_states, key=lambda state: state.timestamp)
-        states = self.consolidate_states(states)
 
         trades = oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address,
                               list(filter(lambda log_take: log_take.timestamp >= start_timestamp, past_take)))
 
-        self.draw(start_timestamp, end_timestamp, states, trades, alternative_prices)
+        self.draw(start_timestamp, end_timestamp, states, trades, prices, alternative_prices)
 
-    def consolidate_states(self, states):
-        last_market_price = None
-        last_order_book = []
-        for i in range(0, len(states)):
-            state = states[i]
+    def tighten_timestamps(self, timestamps: list) -> list:
+        if len(timestamps) == 0:
+            return []
 
-            if state.order_book is None:
-                state.order_book = last_order_book
-            if state.market_price is None:
-                state.market_price = last_market_price
+        result = [timestamps[0]]
+        for index in range(1, len(timestamps)):
+            last_ts = timestamps[index-1]
+            while True:
+                last_ts += 60
+                if last_ts >= timestamps[index]:
+                    break
+                result.append(last_ts)
 
-            last_order_book = state.order_book
-            last_market_price = state.market_price
+            result.append(timestamps[index])
 
-        return states
-
-    def get_price_states(self, start_timestamp: int, end_timestamp: int):
-        prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, self.arguments.price_history_file, start_timestamp, end_timestamp)
-
-        return list(map(lambda price: State(timestamp=price.timestamp,
-                                            order_book=None,
-                                            market_price=price.market_price,
-                                            buy_token_address=self.buy_token_address,
-                                            sell_token_address=self.sell_token_address), prices))
+        return result
 
     def to_size(self, trade: Trade):
         return amount_in_usd_to_size(trade.money)
 
-    def draw(self, start_timestamp: int, end_timestamp: int, states: List[State], trades: List[Trade], alternative_prices: List[Price]):
+    def draw(self, start_timestamp: int, end_timestamp: int, states: List[State], trades: List[Trade], prices: List[Price], alternative_prices: List[Price]):
         import matplotlib.dates as md
         import matplotlib.pyplot as plt
 
@@ -188,13 +177,20 @@ class OasisMarketMakerChart:
         timestamps = list(map(timestamp_to_x, map(lambda state: state.timestamp, states)))
         closest_sell_prices = list(map(lambda state: state.closest_sell_price(), states))
         closest_buy_prices = list(map(lambda state: state.closest_buy_price(), states))
-        market_prices = list(map(lambda state: state.market_price, states))
 
         plt.plot_date(timestamps, closest_sell_prices, 'b-', zorder=2)
         plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=2)
-        plt.plot_date(timestamps, market_prices, 'r-', zorder=2)
+
+        if len(prices) > 0:
+            prices = prepare_prices_for_charting(prices)
+
+            timestamps = list(map(lambda price: timestamp_to_x(price.timestamp), prices))
+            market_prices = list(map(lambda price: price.market_price, prices))
+            plt.plot_date(timestamps, market_prices, 'r-', zorder=2)
 
         if len(alternative_prices) > 0:
+            alternative_prices = prepare_prices_for_charting(alternative_prices)
+
             alternative_timestamps = list(map(lambda price: timestamp_to_x(price.timestamp), alternative_prices))
             alternative_market_prices = list(map(lambda price: price.market_price, alternative_prices))
             plt.plot_date(alternative_timestamps, alternative_market_prices, 'y-', zorder=1)
