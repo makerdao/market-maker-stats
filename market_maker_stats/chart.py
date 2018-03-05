@@ -26,6 +26,20 @@ def initialize_charting(output: Optional[str]):
         matplotlib.use('Agg')
 
 
+# If there is a gap in the price feed history, pyplot by default links it with a straight like.
+# In order to avoid it, we add an empty price # between all values which are at least 3 minutes apart.
+# This way a nice visual gap will be seen in the chart as well.
+def prepare_prices_for_charting(prices: List[Price]) -> List[Price]:
+    result = [prices[0]]
+    for i in range(1, len(prices)):
+        if prices[i].timestamp - prices[i-1].timestamp > 180:
+            result.append(Price(prices[i-1].timestamp + 1, None, None, None, None))
+
+        result.append(prices[i])
+
+    return result
+
+
 def draw_chart(start_timestamp: int,
                end_timestamp: int,
                prices: List[Price],
@@ -54,6 +68,8 @@ def draw_chart(start_timestamp: int,
     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
     if len(prices) > 0:
+        prices = prepare_prices_for_charting(prices)
+
         timestamps = list(map(to_timestamp, prices))
         market_prices = list(map(lambda price: price.market_price, prices))
         plt.plot_date(timestamps, market_prices, 'r-', zorder=2)
@@ -65,6 +81,8 @@ def draw_chart(start_timestamp: int,
             plt.plot_date(timestamps, market_prices_max, 'y-', zorder=1)
 
     if len(alternative_prices) > 0:
+        alternative_prices = prepare_prices_for_charting(alternative_prices)
+
         timestamps = list(map(to_timestamp, alternative_prices))
         market_prices = list(map(lambda price: price.market_price, alternative_prices))
         plt.plot_date(timestamps, market_prices, 'y-', zorder=1)
