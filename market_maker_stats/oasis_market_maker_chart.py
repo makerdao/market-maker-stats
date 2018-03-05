@@ -132,7 +132,7 @@ class OasisMarketMakerChart:
                                    sell_token_address=self.sell_token_address)]
 
         event_timestamps = sorted(set(map(lambda event: event.timestamp, past_make + past_take + past_kill)))
-        states_timestamps = self.tighten_timestamps(event_timestamps)
+        states_timestamps = self.tighten_timestamps(event_timestamps) + [end_timestamp]
         states = list(filter(lambda state: state.timestamp >= start_timestamp, reduce(reduce_func, states_timestamps, [])))
         states = sorted(states, key=lambda state: state.timestamp)
 
