@@ -23,7 +23,7 @@ from typing import List, Optional
 
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.chart import initialize_charting, prepare_prices_for_charting
+from market_maker_stats.chart import initialize_charting, prepare_prices_for_charting, draw_prices
 from market_maker_stats.oasis import oasis_trades, Trade
 from market_maker_stats.util import amount_in_usd_to_size, get_block_timestamp, \
     timestamp_to_x, initialize_logging, get_prices, Price
@@ -181,19 +181,7 @@ class OasisMarketMakerChart:
         plt.plot_date(timestamps, closest_sell_prices, 'b-', zorder=2)
         plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=2)
 
-        if len(prices) > 0:
-            prices = prepare_prices_for_charting(prices)
-
-            timestamps = list(map(lambda price: timestamp_to_x(price.timestamp), prices))
-            market_prices = list(map(lambda price: price.price, prices))
-            plt.plot_date(timestamps, market_prices, 'r-', zorder=2)
-
-        if len(alternative_prices) > 0:
-            alternative_prices = prepare_prices_for_charting(alternative_prices)
-
-            alternative_timestamps = list(map(lambda price: timestamp_to_x(price.timestamp), alternative_prices))
-            alternative_market_prices = list(map(lambda price: price.price, alternative_prices))
-            plt.plot_date(alternative_timestamps, alternative_market_prices, 'y-', zorder=1)
+        draw_prices(prices, alternative_prices)
 
         sell_trades = list(filter(lambda trade: trade.is_sell, trades))
         sell_x = list(map(timestamp_to_x, map(lambda trade: trade.timestamp, sell_trades)))

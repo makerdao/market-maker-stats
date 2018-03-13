@@ -67,19 +67,7 @@ def draw_chart(start_timestamp: int,
     ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
-    if len(prices) > 0:
-        prices = prepare_prices_for_charting(prices)
-
-        timestamps = list(map(to_timestamp, prices))
-        market_prices = list(map(lambda price: price.price, prices))
-        plt.plot_date(timestamps, market_prices, 'r-', zorder=2)
-
-    if len(alternative_prices) > 0:
-        alternative_prices = prepare_prices_for_charting(alternative_prices)
-
-        timestamps = list(map(to_timestamp, alternative_prices))
-        market_prices = list(map(lambda price: price.price, alternative_prices))
-        plt.plot_date(timestamps, market_prices, 'y-', zorder=1)
+    draw_prices(prices, alternative_prices)
 
     sell_trades = list(filter(lambda trade: trade.is_sell, trades))
     sell_x = list(map(to_timestamp, sell_trades))
@@ -97,3 +85,25 @@ def draw_chart(start_timestamp: int,
         plt.savefig(fname=output, dpi=300, bbox_inches='tight', pad_inches=0)
     else:
         plt.show()
+
+
+def draw_prices(prices, alternative_prices):
+    import matplotlib.pyplot as plt
+
+    if len(prices) > 0:
+        prices = prepare_prices_for_charting(prices)
+        timestamps = list(map(lambda price: timestamp_to_x(price.timestamp), prices))
+        buy_prices = list(map(lambda price: price.buy_price if price.buy_price is not None else price.price, prices))
+        sell_prices = list(map(lambda price: price.sell_price if price.sell_price is not None else price.price, prices))
+
+        plt.plot_date(timestamps, buy_prices, 'r-', zorder=2)
+        plt.plot_date(timestamps, sell_prices, 'r-', zorder=2)
+
+    if len(alternative_prices) > 0:
+        alternative_prices = prepare_prices_for_charting(alternative_prices)
+        timestamps = list(map(lambda price: timestamp_to_x(price.timestamp), alternative_prices))
+        buy_prices = list(map(lambda price: price.buy_price if price.buy_price is not None else price.price, alternative_prices))
+        sell_prices = list(map(lambda price: price.sell_price if price.sell_price is not None else price.price, alternative_prices))
+
+        plt.plot_date(timestamps, buy_prices, 'y-', zorder=1)
+        plt.plot_date(timestamps, sell_prices, 'y-', zorder=1)
