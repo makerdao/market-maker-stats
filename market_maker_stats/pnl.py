@@ -46,7 +46,7 @@ def granularize_prices(prices: list) -> list:
         if last_timestamp != -1:
             minute_increment = get_minute(price.timestamp) - get_minute(last_timestamp)
             for i in range(0, minute_increment-1):
-                granular_prices.append(Price(last_timestamp + 60*(i+1), 0.0, 0.0, 0.0, 0.0))
+                granular_prices.append(Price(last_timestamp + 60*(i+1), 0.0, 0.0))
 
             if minute_increment > 0:
                 granular_prices.append(price)

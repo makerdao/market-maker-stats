@@ -84,13 +84,9 @@ class MkrPriceHistory:
 
         prices_mkr_eth = list(map(lambda log_take: Price(timestamp=log_take.timestamp,
                                                          market_price=float(log_take.take_amount / log_take.give_amount),
-                                                         market_price_min=None,
-                                                         market_price_max=None,
                                                          volume=float(log_take.give_amount)), takes_1)) \
                          + list(map(lambda log_take: Price(timestamp=log_take.timestamp,
                                                            market_price=float(log_take.give_amount / log_take.take_amount),
-                                                           market_price_min=None,
-                                                           market_price_max=None,
                                                            volume=float(log_take.take_amount)), takes_2))
 
         return prices_mkr_eth
@@ -102,8 +98,6 @@ class MkrPriceHistory:
             if matching_target is not None:
                 result.append(Price(timestamp=price.timestamp,
                                     market_price=operator(price.market_price, matching_target.market_price),
-                                    market_price_min=None,
-                                    market_price_max=None,
                                     volume=price.volume))
             else:
                 logging.warning(f"No matching price found at {price.timestamp}")

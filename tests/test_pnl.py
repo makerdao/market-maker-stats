@@ -22,53 +22,53 @@ from market_maker_stats.util import Price
 def test_granularize_prices_fills_gaps():
     # given
     # 1518440700 = 2018-02-12 13:05:00 UTC
-    prices = [Price(1518440700, 1.5, 1.4, 1.6, 10),
-              Price(1518440760, 1.7, 1.6, 1.8, 14),
-              Price(1518440880, 1.2, 1.1, 1.3, 18)]
+    prices = [Price(1518440700, 1.5, 10),
+              Price(1518440760, 1.7, 14),
+              Price(1518440880, 1.2, 18)]
 
     # when
     granularized_prices = granularize_prices(prices)
 
     # then
-    assert granularized_prices == [Price(1518440700, 1.5, 1.4, 1.6, 10),
-                                   Price(1518440760, 1.7, 1.6, 1.8, 14),
-                                   Price(1518440820, 0, 0, 0, 0),
-                                   Price(1518440880, 1.2, 1.1, 1.3, 18)]
+    assert granularized_prices == [Price(1518440700, 1.5, 10),
+                                   Price(1518440760, 1.7, 14),
+                                   Price(1518440820, 0, 0),
+                                   Price(1518440880, 1.2, 18)]
 
 
 
 def test_granularize_prices_fills_gaps_even_if_seconds_are_uneven():
     # given
     # 1518440700 = 2018-02-12 13:05:00 UTC
-    prices = [Price(1518440759, 1.5, 1.4, 1.6, 10),
-              Price(1518440760, 1.7, 1.6, 1.8, 14),
-              Price(1518440851, 1.2, 1.1, 1.3, 18)]
+    prices = [Price(1518440759, 1.5, 10),
+              Price(1518440760, 1.7, 14),
+              Price(1518440851, 1.2, 18)]
 
     # when
     granularized_prices = granularize_prices(prices)
 
     # then
-    assert granularized_prices == [Price(1518440759, 1.5, 1.4, 1.6, 10),
-                                   Price(1518440760, 1.7, 1.6, 1.8, 14),
-                                   Price(1518440851, 1.2, 1.1, 1.3, 18)]
+    assert granularized_prices == [Price(1518440759, 1.5, 10),
+                                   Price(1518440760, 1.7, 14),
+                                   Price(1518440851, 1.2, 18)]
 
 
 def test_granularize_prices_removes_duplicates():
     # given
     # 1518440700 = 2018-02-12 13:05:00 UTC
-    prices = [Price(1518440700, 1.5, 1.4, 1.6, 10),
-              Price(1518440730, 1.51, 1.41, 1.61, 11),
-              Price(1518440740, 1.52, 1.42, 1.62, 12),
-              Price(1518440759, 1.53, 1.43, 1.63, 13),
-              Price(1518440760, 1.7, 1.6, 1.8, 14),
-              Price(1518440885, 1.2, 1.1, 1.3, 18),
-              Price(1518440910, 1.1, 1.0, 1.2, 29),]
+    prices = [Price(1518440700, 1.5, 10),
+              Price(1518440730, 1.51, 11),
+              Price(1518440740, 1.52, 12),
+              Price(1518440759, 1.53, 13),
+              Price(1518440760, 1.7, 14),
+              Price(1518440885, 1.2, 18),
+              Price(1518440910, 1.1, 29),]
 
     # when
     granularized_prices = granularize_prices(prices)
 
     # then
-    assert granularized_prices == [Price(1518440700, 1.5, 1.4, 1.6, 10),
-                                   Price(1518440760, 1.7, 1.6, 1.8, 14),
-                                   Price(1518440820, 0, 0, 0, 0),
-                                   Price(1518440885, 1.2, 1.1, 1.3, 18)]
+    assert granularized_prices == [Price(1518440700, 1.5, 10),
+                                   Price(1518440760, 1.7, 14),
+                                   Price(1518440820, 0, 0),
+                                   Price(1518440885, 1.2, 18)]

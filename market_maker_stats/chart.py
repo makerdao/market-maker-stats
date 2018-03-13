@@ -33,7 +33,7 @@ def prepare_prices_for_charting(prices: List[Price]) -> List[Price]:
     result = [prices[0]]
     for i in range(1, len(prices)):
         if prices[i].timestamp - prices[i-1].timestamp > 180:
-            result.append(Price(prices[i-1].timestamp + 1, None, None, None, None))
+            result.append(Price(prices[i-1].timestamp + 1, None, None))
 
         result.append(prices[i])
 
@@ -73,12 +73,6 @@ def draw_chart(start_timestamp: int,
         timestamps = list(map(to_timestamp, prices))
         market_prices = list(map(lambda price: price.market_price, prices))
         plt.plot_date(timestamps, market_prices, 'r-', zorder=2)
-
-        if False:
-            market_prices_min = list(map(lambda price: price.market_price_min, prices))
-            market_prices_max = list(map(lambda price: price.market_price_max, prices))
-            plt.plot_date(timestamps, market_prices_min, 'y-', zorder=1)
-            plt.plot_date(timestamps, market_prices_max, 'y-', zorder=1)
 
     if len(alternative_prices) > 0:
         alternative_prices = prepare_prices_for_charting(alternative_prices)

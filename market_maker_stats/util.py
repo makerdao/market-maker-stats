@@ -43,26 +43,20 @@ SIZE_PRICE_MAX = 30000
 
 
 class Price:
-    def __init__(self, timestamp: int, market_price: float, market_price_min: float, market_price_max: float, volume: float):
+    def __init__(self, timestamp: int, market_price: float, volume: float):
         self.timestamp = timestamp
         self.market_price = market_price
-        self.market_price_min = market_price_min
-        self.market_price_max = market_price_max
         self.volume = volume
 
     def __eq__(self, other):
         assert(isinstance(other, Price))
         return self.timestamp == other.timestamp and \
                self.market_price == other.market_price and \
-               self.market_price_min == other.market_price_min and \
-               self.market_price_max == other.market_price_max and \
                self.volume == other.volume
 
     def __hash__(self):
         return hash((self.timestamp,
                      self.market_price,
-                     self.market_price_min,
-                     self.market_price_max,
                      self.volume))
 
     def __repr__(self):
@@ -137,8 +131,6 @@ def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
                 if start_timestamp <= timestamp <= end_timestamp:
                     prices.append(Price(timestamp=timestamp,
                                         market_price=price,
-                                        market_price_min=None,
-                                        market_price_max=None,
                                         volume=record['volume'] if 'volume' in record else None))
             except:
                 pass
@@ -153,8 +145,6 @@ def get_price_feed(endpoint: str, start_timestamp: int, end_timestamp: int):
 
     return list(map(lambda item: Price(timestamp=item['timestamp'],
                                        market_price=float(item['data']['price']) if 'price' in item['data'] else None,
-                                       market_price_min=None,
-                                       market_price_max=None,
                                        volume=None), result.json()['items']))
 
 
@@ -239,8 +229,6 @@ def get_gdax_partial(product: str, timestamp_range_start: int, timestamp_range_e
     data = data_from_cache if data_from_cache is not None else data_from_server
     prices = list(map(lambda array: Price(timestamp=array[0],
                                           market_price=(array[1]+array[2])/2,
-                                          market_price_min=array[1],
-                                          market_price_max=array[2],
                                           volume=array[5]), data))
 
     return list(filter(lambda price: timestamp_range_start <= price.timestamp <= timestamp_range_end, prices))
