@@ -185,14 +185,14 @@ class OasisMarketMakerChart:
             prices = prepare_prices_for_charting(prices)
 
             timestamps = list(map(lambda price: timestamp_to_x(price.timestamp), prices))
-            market_prices = list(map(lambda price: price.market_price, prices))
+            market_prices = list(map(lambda price: price.price, prices))
             plt.plot_date(timestamps, market_prices, 'r-', zorder=2)
 
         if len(alternative_prices) > 0:
             alternative_prices = prepare_prices_for_charting(alternative_prices)
 
             alternative_timestamps = list(map(lambda price: timestamp_to_x(price.timestamp), alternative_prices))
-            alternative_market_prices = list(map(lambda price: price.market_price, alternative_prices))
+            alternative_market_prices = list(map(lambda price: price.price, alternative_prices))
             plt.plot_date(alternative_timestamps, alternative_market_prices, 'y-', zorder=1)
 
         sell_trades = list(filter(lambda trade: trade.is_sell, trades))

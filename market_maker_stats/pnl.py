@@ -46,7 +46,7 @@ def granularize_prices(prices: list) -> list:
         if last_timestamp != -1:
             minute_increment = get_minute(price.timestamp) - get_minute(last_timestamp)
             for i in range(0, minute_increment-1):
-                granular_prices.append(Price(last_timestamp + 60*(i+1), 0.0, 0.0))
+                granular_prices.append(Price(last_timestamp + 60*(i+1), 0.0, 0.0, 0.0, 0.0))
 
             if minute_increment > 0:
                 granular_prices.append(price)
@@ -65,7 +65,7 @@ def get_approx_vwaps(prices: list, vwap_minutes: int):
     # approximates historical vwap_minutes VWAPs from GDAX by querying historical at minimal
     # (60 second) granularity, using (low+high)/2 as price for each bucket, then weighting by volume
     # traded in each bucket. Might not be that accurate, consider applying smoothing on top of this
-    granular_prices_avg = np.array(list(map(lambda price: price.market_price, granular_prices)))
+    granular_prices_avg = np.array(list(map(lambda price: price.price, granular_prices)))
     granular_volumes = np.array(list(map(lambda price: price.volume, granular_prices)))
 
     rolling_volumes = rolling_window(granular_volumes, vwap_minutes)
@@ -203,7 +203,7 @@ def pnl_chart(start_timestamp: int, end_timestamp: int, prices: List[Price], tra
     ax.plot(dt_timestamps[:len(pnl_profits)], np.cumsum(pnl_profits), color='green')
 
     ax2.plot(list(map(lambda price: timestamp_to_x(price.timestamp), prices)),
-             list(map(lambda price: price.market_price, prices)), color='red')
+             list(map(lambda price: price.price, prices)), color='red')
 
     ax.set_ylabel(f"Cumulative PnL ({buy_token})")
     ax2.set_ylabel(f"{sell_token} price in {buy_token}")

@@ -83,10 +83,14 @@ class MkrPriceHistory:
         takes_2 = filter(lambda log_take: log_take.buy_token == self.weth_address and log_take.pay_token == self.mkr_address, takes)
 
         prices_mkr_eth = list(map(lambda log_take: Price(timestamp=log_take.timestamp,
-                                                         market_price=float(log_take.take_amount / log_take.give_amount),
+                                                         price=float(log_take.take_amount / log_take.give_amount),
+                                                         buy_price=None,
+                                                         sell_price=None,
                                                          volume=float(log_take.give_amount)), takes_1)) \
                          + list(map(lambda log_take: Price(timestamp=log_take.timestamp,
-                                                           market_price=float(log_take.give_amount / log_take.take_amount),
+                                                           price=float(log_take.give_amount / log_take.take_amount),
+                                                           buy_price=None,
+                                                           sell_price=None,
                                                            volume=float(log_take.take_amount)), takes_2))
 
         return prices_mkr_eth
@@ -97,7 +101,9 @@ class MkrPriceHistory:
             matching_target = next(filter(lambda target_price: target_price.timestamp >= price.timestamp, target), None)
             if matching_target is not None:
                 result.append(Price(timestamp=price.timestamp,
-                                    market_price=operator(price.market_price, matching_target.market_price),
+                                    price=operator(price.price, matching_target.price),
+                                    buy_price=None,
+                                    sell_price=None,
                                     volume=price.volume))
             else:
                 logging.warning(f"No matching price found at {price.timestamp}")
@@ -109,7 +115,7 @@ class MkrPriceHistory:
             with open(filename, "w") as file:
                 for price in prices:
                     file.write(json.dumps({"timestamp": price.timestamp,
-                                           "price": float(price.market_price),
+                                           "price": float(price.price),
                                            "volume": float(price.volume)}) + "\n")
 
 

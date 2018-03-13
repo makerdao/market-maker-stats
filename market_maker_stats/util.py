@@ -43,20 +43,26 @@ SIZE_PRICE_MAX = 30000
 
 
 class Price:
-    def __init__(self, timestamp: int, market_price: float, volume: float):
+    def __init__(self, timestamp: int, price: Optional[float], buy_price: Optional[float], sell_price: Optional[float], volume: Optional[float]):
         self.timestamp = timestamp
-        self.market_price = market_price
+        self.price = price
+        self.buy_price = buy_price
+        self.sell_price = sell_price
         self.volume = volume
 
     def __eq__(self, other):
         assert(isinstance(other, Price))
         return self.timestamp == other.timestamp and \
-               self.market_price == other.market_price and \
+               self.price == other.price and \
+               self.buy_price == other.buy_price and \
+               self.sell_price == other.sell_price and \
                self.volume == other.volume
 
     def __hash__(self):
         return hash((self.timestamp,
-                     self.market_price,
+                     self.price,
+                     self.buy_price,
+                     self.sell_price,
                      self.volume))
 
     def __repr__(self):
@@ -130,7 +136,9 @@ def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
 
                 if start_timestamp <= timestamp <= end_timestamp:
                     prices.append(Price(timestamp=timestamp,
-                                        market_price=price,
+                                        price=price,
+                                        buy_price=None,
+                                        sell_price=None,
                                         volume=record['volume'] if 'volume' in record else None))
             except:
                 pass
@@ -144,7 +152,9 @@ def get_price_feed(endpoint: str, start_timestamp: int, end_timestamp: int):
         raise Exception(f"Failed to fetch price feed history: {result.status_code} {result.reason}")
 
     return list(map(lambda item: Price(timestamp=item['timestamp'],
-                                       market_price=float(item['data']['price']) if 'price' in item['data'] else None,
+                                       price=float(item['data']['price']) if 'price' in item['data'] else None,
+                                       buy_price=float(item['data']['buyPrice']) if 'buyPrice' in item['data'] else None,
+                                       sell_price=float(item['data']['sellPrice']) if 'sellPrice' in item['data'] else None,
                                        volume=None), result.json()['items']))
 
 
@@ -228,7 +238,9 @@ def get_gdax_partial(product: str, timestamp_range_start: int, timestamp_range_e
     # data is: [[ time, low, high, open, close, volume ], [...]]
     data = data_from_cache if data_from_cache is not None else data_from_server
     prices = list(map(lambda array: Price(timestamp=array[0],
-                                          market_price=(array[1]+array[2])/2,
+                                          price=(array[1] + array[2]) / 2,
+                                          buy_price=None,
+                                          sell_price=None,
                                           volume=array[5]), data))
 
     return list(filter(lambda price: timestamp_range_start <= price.timestamp <= timestamp_range_end, prices))
