@@ -23,7 +23,7 @@ from typing import List, Optional
 
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.chart import initialize_charting, prepare_prices_for_charting, draw_prices
+from market_maker_stats.chart import initialize_charting, prepare_prices_for_charting, draw_prices, draw_trades
 from market_maker_stats.oasis import oasis_trades, Trade
 from market_maker_stats.util import amount_in_usd_to_size, get_block_timestamp, \
     timestamp_to_x, initialize_logging, get_prices, Price
@@ -161,9 +161,6 @@ class OasisMarketMakerChart:
 
         return result
 
-    def to_size(self, trade: Trade):
-        return amount_in_usd_to_size(trade.money)
-
     def draw(self, start_timestamp: int, end_timestamp: int, states: List[State], trades: List[Trade], prices: List[Price], alternative_prices: List[Price]):
         import matplotlib.dates as md
         import matplotlib.pyplot as plt
@@ -182,18 +179,7 @@ class OasisMarketMakerChart:
         plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=2)
 
         draw_prices(prices, alternative_prices)
-
-        sell_trades = list(filter(lambda trade: trade.is_sell, trades))
-        sell_x = list(map(timestamp_to_x, map(lambda trade: trade.timestamp, sell_trades)))
-        sell_y = list(map(lambda trade: trade.price, sell_trades))
-        sell_s = list(map(self.to_size, sell_trades))
-        plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=3)
-
-        buy_trades = list(filter(lambda trade: not trade.is_sell, trades))
-        buy_x = list(map(timestamp_to_x, map(lambda trade: trade.timestamp, buy_trades)))
-        buy_y = list(map(lambda trade: trade.price, buy_trades))
-        buy_s = list(map(self.to_size, buy_trades))
-        plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=3)
+        draw_trades(trades)
 
         if self.arguments.output:
             plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)

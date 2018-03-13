@@ -49,18 +49,6 @@ def draw_chart(start_timestamp: int,
     import matplotlib.dates as md
     import matplotlib.pyplot as plt
 
-    def to_timestamp(price_or_trade):
-        return timestamp_to_x(price_or_trade.timestamp)
-
-    def to_price(trade):
-        return trade.price
-
-    def to_size(trade):
-        try :
-            return amount_to_size(trade.money_symbol, trade.money)
-        except:
-            return amount_in_usd_to_size(trade.money)
-
     plt.subplots_adjust(bottom=0.2)
     plt.xticks(rotation=25)
     ax=plt.gca()
@@ -68,18 +56,7 @@ def draw_chart(start_timestamp: int,
     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
     draw_prices(prices, alternative_prices)
-
-    sell_trades = list(filter(lambda trade: trade.is_sell, trades))
-    sell_x = list(map(to_timestamp, sell_trades))
-    sell_y = list(map(to_price, sell_trades))
-    sell_s = list(map(to_size, sell_trades))
-    plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=3)
-
-    buy_trades = list(filter(lambda trade: not trade.is_sell, trades))
-    buy_x = list(map(to_timestamp, buy_trades))
-    buy_y = list(map(to_price, buy_trades))
-    buy_s = list(map(to_size, buy_trades))
-    plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=3)
+    draw_trades(trades)
 
     if output:
         plt.savefig(fname=output, dpi=300, bbox_inches='tight', pad_inches=0)
@@ -107,3 +84,31 @@ def draw_prices(prices, alternative_prices):
 
         plt.plot_date(timestamps, buy_prices, 'y-', zorder=1)
         plt.plot_date(timestamps, sell_prices, 'y-', zorder=1)
+
+
+def draw_trades(trades):
+    import matplotlib.pyplot as plt
+
+    def to_timestamp(price_or_trade):
+        return timestamp_to_x(price_or_trade.timestamp)
+
+    def to_price(trade):
+        return trade.price
+
+    def to_size(trade):
+        try:
+            return amount_to_size(trade.money_symbol, trade.money)
+        except:
+            return amount_in_usd_to_size(trade.money)
+
+    sell_trades = list(filter(lambda trade: trade.is_sell, trades))
+    sell_x = list(map(to_timestamp, sell_trades))
+    sell_y = list(map(to_price, sell_trades))
+    sell_s = list(map(to_size, sell_trades))
+    plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=3)
+
+    buy_trades = list(filter(lambda trade: not trade.is_sell, trades))
+    buy_x = list(map(to_timestamp, buy_trades))
+    buy_y = list(map(to_price, buy_trades))
+    buy_s = list(map(to_size, buy_trades))
+    plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=3)
