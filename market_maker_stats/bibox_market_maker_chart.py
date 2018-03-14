@@ -37,9 +37,7 @@ class BiboxMarketMakerChart:
         parser.add_argument("--bibox-retry-count", help="Retry count for accessing the Bibox API (default: 20)", default=20, type=int)
         parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", type=str)
         parser.add_argument("--price-feed", help="Price endpoint to use as the price history source", type=str)
-        parser.add_argument("--price-history-file", help="File to use as the price history source", type=str)
         parser.add_argument("--alternative-price-feed", help="Price endpoint to use as the alternative price history source", type=str)
-        parser.add_argument("--alternative-price-history-file", help="File to use as the alternative price history source", type=str)
         parser.add_argument("--pair", help="Token pair to draw the chart for", required=True, type=str)
         parser.add_argument("--past", help="Past period of time for which to draw the chart for (e.g. 3d)", required=True, type=str)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
@@ -64,8 +62,8 @@ class BiboxMarketMakerChart:
                                            from_timestamp=start_timestamp,
                                            to_timestamp=end_timestamp)
 
-        prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, self.arguments.price_history_file, start_timestamp, end_timestamp)
-        alternative_prices = get_prices(None, self.arguments.alternative_price_feed, self.arguments.alternative_price_history_file, start_timestamp, end_timestamp)
+        prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, None, start_timestamp, end_timestamp)
+        alternative_prices = get_prices(None, self.arguments.alternative_price_feed, None, start_timestamp, end_timestamp)
 
         draw_chart(start_timestamp, end_timestamp, prices, alternative_prices, trades, self.arguments.output)
 

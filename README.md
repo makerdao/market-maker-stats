@@ -46,15 +46,9 @@ For some known macOS issues see the [pymaker](https://github.com/makerdao/pymake
 ## Trade chart tools
 
 These tools draw a chart with either the historical GDAX ETH/USD price, the historical GDAX BTC/USD price,
-or any other price which history is present in a disk file, and recent trades which took place with the keeper
+or any other price which history has been archived in `streamer`, and recent trades which took place with the keeper
 (represented as dots). The size of the dots depends on the trade volume. This way we can clearly
 spot if the keeper is not creating dangerous arbitrage opportunities.
-
-Price history files can be supplied using `--price-history-file` and `--alternative-price-history-file`
-arguments. If they are, it is expected that each line of them will be a simple JSON document with `timestamp`
-and `price` properties. If no `--price-history-file` argument is supplied, the `--gdax-price` argument
-can be used to make the tools use historical GDAX price data. The value of this argument is the GDAX
-product identifier, it only currently makes sense to use `ETH-USD` or `BTC-USD`.
 
 In case of OasisDEX (the `oasis-market-maker-chart` tool), closest bids and asks will also be shown
 in the chart (represented as lines).
