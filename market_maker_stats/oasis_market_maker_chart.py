@@ -24,7 +24,8 @@ from typing import List, Optional
 from web3 import Web3, HTTPProvider
 
 from market_maker_stats.chart import initialize_charting, prepare_prices_for_charting, draw_prices, draw_trades
-from market_maker_stats.oasis import oasis_trades, Trade
+from market_maker_stats.model import AllTrade
+from market_maker_stats.oasis import our_oasis_trades, Trade, all_oasis_trades
 from market_maker_stats.util import amount_in_usd_to_size, get_block_timestamp, \
     timestamp_to_x, initialize_logging, get_prices, Price
 from pymaker import Address
@@ -137,10 +138,11 @@ class OasisMarketMakerChart:
         prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, None, start_timestamp, end_timestamp)
         alternative_prices = get_prices(None, self.arguments.alternative_price_feed, None, start_timestamp, end_timestamp)
 
-        trades = oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address,
-                              list(filter(lambda log_take: log_take.timestamp >= start_timestamp, past_take)))
+        takes = list(filter(lambda log_take: log_take.timestamp >= start_timestamp, past_take))
+        our_trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, takes)
+        all_trades = all_oasis_trades(self.buy_token_address, self.sell_token_address, takes)
 
-        self.draw(start_timestamp, end_timestamp, states, trades, prices, alternative_prices)
+        self.draw(start_timestamp, end_timestamp, states, our_trades, all_trades, prices, alternative_prices)
 
     def tighten_timestamps(self, timestamps: list) -> list:
         if len(timestamps) == 0:
@@ -159,7 +161,7 @@ class OasisMarketMakerChart:
 
         return result
 
-    def draw(self, start_timestamp: int, end_timestamp: int, states: List[State], trades: List[Trade], prices: List[Price], alternative_prices: List[Price]):
+    def draw(self, start_timestamp: int, end_timestamp: int, states: List[State], our_trades: List[Trade], all_trades: List[AllTrade], prices: List[Price], alternative_prices: List[Price]):
         import matplotlib.dates as md
         import matplotlib.pyplot as plt
 
@@ -177,7 +179,7 @@ class OasisMarketMakerChart:
         plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=2)
 
         draw_prices(prices, alternative_prices)
-        draw_trades(trades)
+        draw_trades(our_trades, all_trades)
 
         if self.arguments.output:
             plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)

@@ -17,6 +17,7 @@
 
 from typing import List
 
+from market_maker_stats.model import AllTrade
 from pymaker import Address
 from pymaker.numeric import Wad
 from pymaker.oasis import LogTake
@@ -32,7 +33,7 @@ class Trade:
         self.taker = taker
 
 
-def oasis_trades(market_maker_address: Address, buy_token_address: Address, sell_token_address: Address, past_takes: List[LogTake]) -> list:
+def our_oasis_trades(market_maker_address: Address, buy_token_address: Address, sell_token_address: Address, past_takes: List[LogTake]) -> list:
     assert(isinstance(market_maker_address, Address))
     assert(isinstance(buy_token_address, Address))
     assert(isinstance(sell_token_address, Address))
@@ -54,3 +55,17 @@ def oasis_trades(market_maker_address: Address, buy_token_address: Address, sell
 
     trades = sell_trades() + buy_trades()
     return sorted(trades, key=lambda trade: trade.timestamp)
+
+
+def all_oasis_trades(buy_token_address: Address, sell_token_address: Address, past_takes: List[LogTake]) -> List[AllTrade]:
+    assert(isinstance(buy_token_address, Address))
+    assert(isinstance(sell_token_address, Address))
+    assert(isinstance(past_takes, list))
+
+    regular = map(lambda log_take: AllTrade('-', float(log_take.timestamp), log_take.take_amount, log_take.give_amount / log_take.take_amount),
+                  filter(lambda log_take: log_take.buy_token == buy_token_address and log_take.pay_token == sell_token_address, past_takes))
+
+    matched = map(lambda log_take: AllTrade('-', float(log_take.timestamp), log_take.give_amount, log_take.take_amount / log_take.give_amount),
+                  filter(lambda log_take: log_take.buy_token == sell_token_address and log_take.pay_token == buy_token_address, past_takes))
+
+    return sorted(list(regular) + list(matched), key=lambda trade: trade.timestamp)

@@ -26,7 +26,7 @@ import time
 from typing import List, Optional
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.oasis import oasis_trades
+from market_maker_stats.oasis import our_oasis_trades
 from market_maker_stats.pnl import get_approx_vwaps, pnl_text, pnl_chart
 from market_maker_stats.util import get_gdax_prices, sort_trades_for_pnl, get_block_timestamp, Price
 from pymaker import Address

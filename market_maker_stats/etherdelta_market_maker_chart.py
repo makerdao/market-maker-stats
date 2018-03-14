@@ -66,7 +66,7 @@ class EtherDeltaMarketMakerChart:
 
         prices = get_gdax_prices(self.arguments.gdax_price, start_timestamp, end_timestamp)
 
-        draw_chart(start_timestamp, end_timestamp, prices, [], trades, self.arguments.output)
+        draw_chart(start_timestamp, end_timestamp, prices, [], trades, [], self.arguments.output)
 
 
 if __name__ == '__main__':

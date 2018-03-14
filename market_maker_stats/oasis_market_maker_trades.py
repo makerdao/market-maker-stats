@@ -26,7 +26,7 @@ import pytz
 from texttable import Texttable
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.oasis import Trade, oasis_trades
+from market_maker_stats.oasis import Trade, our_oasis_trades
 from market_maker_stats.trades import text_trades, json_trades
 from market_maker_stats.util import format_timestamp, sort_trades
 from pymaker import Address
@@ -70,7 +70,7 @@ class OasisMarketMakerTrades:
 
     def main(self):
         take_events = self.otc.past_take(self.arguments.past_blocks)
-        trades = oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, take_events)
+        trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, take_events)
         trades = sort_trades(trades)
 
         if self.arguments.text:

@@ -35,6 +35,7 @@ from typing import List, Optional
 from appdirs import user_cache_dir
 from web3 import Web3
 
+from market_maker_stats.model import AllTrade
 from pymaker.numeric import Wad
 
 SIZE_MIN = 5
@@ -112,6 +113,21 @@ def cache_folder():
             raise
 
     return db_folder
+
+
+def get_all_trades(endpoint: Optional[str], start_timestamp: int, end_timestamp: int):
+    if endpoint is not None:
+        result = requests.get(f"{endpoint}&min={start_timestamp}&max={end_timestamp}")
+
+        if not result.ok:
+            raise Exception(f"Unable to fetch all trades from the endpoint: {result.status_code} {result.reason}")
+
+        return list(map(lambda item: AllTrade(pair=item['pair'],
+                                              timestamp=float(item['timestamp']),
+                                              amount=Wad.from_number(item['amount']),
+                                              price=Wad.from_number(item['price'])), result.json()['items']))
+    else:
+        return []
 
 
 def get_prices(gdax_price: Optional[str], price_feed: Optional[str], price_history_file: Optional[str], start_timestamp: int, end_timestamp: int):
@@ -261,11 +277,9 @@ def format_timestamp(timestamp: int):
     return datetime.datetime.fromtimestamp(timestamp, pytz.UTC).strftime('%Y-%m-%d %H:%M:%S %Z')
 
 
-def timestamp_to_x(timestamp: int):
-    assert(isinstance(timestamp, int))
-
+def timestamp_to_x(timestamp):
     from matplotlib.dates import date2num
-    return date2num(datetime.datetime.fromtimestamp(timestamp))
+    return date2num(datetime.datetime.fromtimestamp(int(timestamp)))
 
 
 def sort_trades(trades: list) -> list:

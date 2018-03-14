@@ -44,7 +44,8 @@ def draw_chart(start_timestamp: int,
                end_timestamp: int,
                prices: List[Price],
                alternative_prices: List[Price],
-               trades: list,
+               our_trades: list,
+               all_trades: list,
                output: Optional[str]):
     import matplotlib.dates as md
     import matplotlib.pyplot as plt
@@ -56,7 +57,7 @@ def draw_chart(start_timestamp: int,
     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
     draw_prices(prices, alternative_prices)
-    draw_trades(trades)
+    draw_trades(our_trades, all_trades)
 
     if output:
         plt.savefig(fname=output, dpi=300, bbox_inches='tight', pad_inches=0)
@@ -86,7 +87,7 @@ def draw_prices(prices, alternative_prices):
         plt.plot_date(timestamps, sell_prices, 'y-', zorder=1)
 
 
-def draw_trades(trades):
+def draw_trades(our_trades, all_trades):
     import matplotlib.pyplot as plt
 
     def to_timestamp(price_or_trade):
@@ -101,14 +102,19 @@ def draw_trades(trades):
         except:
             return amount_in_usd_to_size(trade.money)
 
-    sell_trades = list(filter(lambda trade: trade.is_sell, trades))
+    sell_trades = list(filter(lambda trade: trade.is_sell, our_trades))
     sell_x = list(map(to_timestamp, sell_trades))
     sell_y = list(map(to_price, sell_trades))
     sell_s = list(map(to_size, sell_trades))
-    plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=3)
+    plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=4)
 
-    buy_trades = list(filter(lambda trade: not trade.is_sell, trades))
+    buy_trades = list(filter(lambda trade: not trade.is_sell, our_trades))
     buy_x = list(map(to_timestamp, buy_trades))
     buy_y = list(map(to_price, buy_trades))
     buy_s = list(map(to_size, buy_trades))
-    plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=3)
+    plt.scatter(x=buy_x, y=buy_y, s=buy_s, c='green', zorder=4)
+
+    all_x = list(map(to_timestamp, all_trades))
+    all_y = list(map(to_price, all_trades))
+    all_s = list(map(to_size, all_trades))
+    plt.scatter(x=all_x, y=all_y, s=all_s, c='#ff00e5', zorder=3)
