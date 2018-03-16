@@ -19,13 +19,9 @@ import argparse
 import sys
 import time
 
-from web3 import Web3, HTTPProvider
-
 from market_maker_stats.trades import text_trades, json_trades
 from market_maker_stats.util import to_seconds, sort_trades, initialize_logging
 from pyexchange.paradex import ParadexApi
-from pymaker import Address
-from pymaker.zrx import ZrxExchange
 
 
 class ParadexMarketMakerTrades:
@@ -33,14 +29,9 @@ class ParadexMarketMakerTrades:
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='paradex-market-maker-trades')
-        parser.add_argument("--rpc-host", help="JSON-RPC host (default: `localhost')", default="localhost", type=str)
-        parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
-        parser.add_argument("--rpc-timeout", help="JSON-RPC timeout (in seconds, default: 60)", type=int, default=60)
         parser.add_argument("--paradex-api-server", help="Address of the Paradex API server (default: 'https://api.paradex.io/consumer')", default='https://api.paradex.io/consumer', type=str)
         parser.add_argument("--paradex-api-key", help="API key for the Paradex API", required=True, type=str)
         parser.add_argument("--paradex-api-timeout", help="Timeout for accessing the Paradex API", default=9.5, type=float)
-        parser.add_argument("--exchange-address", help="Ethereum address of the 0x contract", required=True, type=str)
-        parser.add_argument("--market-maker-address", help="Ethereum account of the trading account", required=True, type=str)
         parser.add_argument("--pair", help="Token pair to get the past trades for", required=True, type=str)
         parser.add_argument("--past", help="Past period of time for which to get the trades for (e.g. 3d)", required=True, type=str)
         parser.add_argument("-o", "--output", help="File to save the table or the JSON to", required=False, type=str)
@@ -51,12 +42,7 @@ class ParadexMarketMakerTrades:
 
         self.arguments = parser.parse_args(args)
 
-        self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}",
-                                      request_kwargs={'timeout': self.arguments.rpc_timeout}))
-        self.web3.eth.defaultAccount = self.arguments.market_maker_address
-
-        self.exchange = ZrxExchange(web3=self.web3, address=Address(self.arguments.exchange_address))
-        self.paradex_api = ParadexApi(self.exchange,
+        self.paradex_api = ParadexApi(None,
                                       self.arguments.paradex_api_server,
                                       self.arguments.paradex_api_key,
                                       self.arguments.paradex_api_timeout)
