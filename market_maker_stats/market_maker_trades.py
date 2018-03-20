@@ -40,12 +40,6 @@ class MarketMakerTrades:
 
         initialize_logging()
 
-    def sell_token(self):
-        return self.arguments.pair.split('/')[0].upper()
-
-    def buy_token(self):
-        return self.arguments.pair.split('/')[1].upper()
-
     def main(self):
         start_timestamp = int(time.time() - to_seconds(self.arguments.past))
         end_timestamp = int(time.time())
