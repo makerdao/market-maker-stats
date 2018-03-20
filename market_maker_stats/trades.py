@@ -75,13 +75,7 @@ def text_trades(buy_token, sell_token, trades, output: Optional[str], include_ta
                      f"Amount in {sell_token}",
                      f"Value in {buy_token}"] + (["Taker"] if include_taker else [])] + list(map(table_row, trades)))
 
-    result = f"Trade history on the {sell_token}/{buy_token} pair:" + "\n" + \
-             f"" + "\n" + \
-             table.draw() + "\n" + \
-             f"" + "\n" + \
-             f"Buy  = Somebody bought {buy_token} from the keeper" + "\n" + \
-             f"Sell = Somebody sold {buy_token} to the keeper" + "\n" + \
-             f"" + "\n" + \
+    result = table.draw() + "\n\n" + \
              f"Number of trades: {len(trades)}" + "\n" + \
              f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}"
 
