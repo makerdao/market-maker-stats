@@ -29,8 +29,5 @@ class AllTrade:
         self.amount = amount
         self.amount_symbol = pair.split("-")[0]
         self.price = price
+        self.money = amount * price
         self.money_symbol = pair.split("-")[1]
-
-    @property
-    def money(self) -> Wad:
-        return self.amount * self.price
