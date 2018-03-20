@@ -16,14 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import logging
 import sys
 import time
 
 from market_maker_stats.chart import initialize_charting, draw_chart
-from market_maker_stats.util import get_gdax_prices, get_file_prices, to_seconds, initialize_logging, get_prices, \
-    get_trades
-from pyexchange.bibox import BiboxApi
+from market_maker_stats.util import to_seconds, initialize_logging, get_prices, get_trades
 
 
 class MarketMakerChart:
