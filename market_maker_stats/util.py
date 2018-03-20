@@ -35,6 +35,7 @@ from typing import List, Optional
 from appdirs import user_cache_dir
 from web3 import Web3
 
+import trade_client
 from market_maker_stats.model import AllTrade
 from pymaker.numeric import Wad
 
@@ -117,16 +118,13 @@ def cache_folder():
 
 def get_trades(endpoint: Optional[str], start_timestamp: int, end_timestamp: int):
     if endpoint is not None:
-        result = requests.get(f"{endpoint}&min={start_timestamp}&max={end_timestamp}")
+        trades = trade_client.get_trades(endpoint, start_timestamp, end_timestamp)
 
-        if not result.ok:
-            raise Exception(f"Unable to fetch trades from the endpoint: {result.status_code} {result.reason}")
-
-        return list(map(lambda item: AllTrade(pair=item['pair'],
-                                              timestamp=int(item['timestamp']),
-                                              is_sell=item['type'] == 'sell' if 'type' in item else None,
-                                              amount=Wad.from_number(item['amount']),
-                                              price=Wad.from_number(item['price'])), result.json()['items']))
+        return list(map(lambda item: AllTrade(pair=item.pair,
+                                              timestamp=item.timestamp,
+                                              is_sell=item.is_sell,
+                                              amount=item.amount,
+                                              price=item.price), trades))
     else:
         return []
 
