@@ -53,17 +53,29 @@ def json_trades(trades: list, output: Optional[str], include_taker: bool = False
 
 
 def text_trades(buy_token, sell_token, trades, output: Optional[str], include_taker: bool = False):
-    assert(isinstance(buy_token, str))
-    assert(isinstance(sell_token, str))
+    assert(isinstance(buy_token, str) or (buy_token is None))
+    assert(isinstance(sell_token, str) or (sell_token is None))
     assert(isinstance(trades, list))
     assert(isinstance(include_taker, bool))
+
+    def amount_symbol(trade):
+        try:
+            return trade.amount_symbol
+        except:
+            return sell_token
+
+    def money_symbol(trade):
+        try:
+            return trade.money_symbol
+        except:
+            return buy_token
 
     def table_row(trade) -> list:
         return [format_timestamp(trade.timestamp),
                 "Sell" if trade.is_sell else "Buy",
                 format(float(trade.price), '.8f'),
-                format(float(trade.amount), '.8f'),
-                format(float(trade.money), '.8f')] + ([str(trade.taker)] if include_taker else [])
+                ' '*5 + format(float(trade.amount), '.8f') + ' ' + amount_symbol(trade),
+                ' '*3 + format(float(trade.money), '.8f') + ' ' + money_symbol(trade)] + ([str(trade.taker)] if include_taker else [])
 
     table = Texttable(max_width=250)
     table.set_deco(Texttable.HEADER)
@@ -72,8 +84,8 @@ def text_trades(buy_token, sell_token, trades, output: Optional[str], include_ta
     table.add_rows([["Date/time",
                      "Type",
                      "Price",
-                     f"Amount in {sell_token}",
-                     f"Value in {buy_token}"] + (["Taker"] if include_taker else [])] + list(map(table_row, trades)))
+                     f"Amount",
+                     f"Value"] + (["Taker"] if include_taker else [])] + list(map(table_row, trades)))
 
     result = table.draw() + "\n\n" + \
              f"Number of trades: {len(trades)}" + "\n" + \
