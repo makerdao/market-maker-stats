@@ -28,7 +28,7 @@ class MarketMakerTrades:
 
     def __init__(self, args: list):
         parser = argparse.ArgumentParser(prog='market-maker-trades')
-        parser.add_argument("--our-trades", help="Trades endpoint from which to fetch our trades", type=str)
+        parser.add_argument("--our-trades", help="Trades endpoint from which to fetch our trades", required=True, type=str)
         parser.add_argument("--past", help="Past period of time for which to get the trades for (e.g. 3d)", required=True, type=str)
         parser.add_argument("-o", "--output", help="File to save the table or the JSON to", required=False, type=str)
 
