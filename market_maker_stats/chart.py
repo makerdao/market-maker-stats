@@ -102,13 +102,13 @@ def draw_trades(our_trades, all_trades):
         except:
             return amount_in_usd_to_size(trade.money)
 
-    sell_trades = list(filter(lambda trade: trade.is_sell, our_trades))
+    sell_trades = list(filter(lambda trade: trade.is_sell is True, our_trades))
     sell_x = list(map(to_timestamp, sell_trades))
     sell_y = list(map(to_price, sell_trades))
     sell_s = list(map(to_size, sell_trades))
     plt.scatter(x=sell_x, y=sell_y, s=sell_s, c='blue', zorder=4)
 
-    buy_trades = list(filter(lambda trade: not trade.is_sell, our_trades))
+    buy_trades = list(filter(lambda trade: trade.is_sell is False, our_trades))
     buy_x = list(map(to_timestamp, buy_trades))
     buy_y = list(map(to_price, buy_trades))
     buy_s = list(map(to_size, buy_trades))

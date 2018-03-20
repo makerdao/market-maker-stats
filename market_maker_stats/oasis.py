@@ -62,10 +62,10 @@ def all_oasis_trades(buy_token_address: Address, sell_token_address: Address, pa
     assert(isinstance(sell_token_address, Address))
     assert(isinstance(past_takes, list))
 
-    regular = map(lambda log_take: AllTrade('-', float(log_take.timestamp), log_take.take_amount, log_take.give_amount / log_take.take_amount),
+    regular = map(lambda log_take: AllTrade('-', int(log_take.timestamp), None, log_take.take_amount, log_take.give_amount / log_take.take_amount),
                   filter(lambda log_take: log_take.buy_token == buy_token_address and log_take.pay_token == sell_token_address, past_takes))
 
-    matched = map(lambda log_take: AllTrade('-', float(log_take.timestamp), log_take.give_amount, log_take.take_amount / log_take.give_amount),
+    matched = map(lambda log_take: AllTrade('-', int(log_take.timestamp), None, log_take.give_amount, log_take.take_amount / log_take.give_amount),
                   filter(lambda log_take: log_take.buy_token == sell_token_address and log_take.pay_token == buy_token_address, past_takes))
 
     return sorted(list(regular) + list(matched), key=lambda trade: trade.timestamp)
