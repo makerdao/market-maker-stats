@@ -22,7 +22,7 @@ import time
 
 from market_maker_stats.chart import initialize_charting, draw_chart
 from market_maker_stats.util import get_gdax_prices, get_file_prices, to_seconds, initialize_logging, get_prices, \
-    get_all_trades
+    get_trades
 from pyexchange.bibox import BiboxApi
 
 
@@ -63,7 +63,7 @@ class BiboxMarketMakerChart:
                                                retry_count=self.arguments.bibox_retry_count,
                                                from_timestamp=start_timestamp,
                                                to_timestamp=end_timestamp)
-        all_trades = get_all_trades(self.arguments.all_trades, start_timestamp, end_timestamp)
+        all_trades = get_trades(self.arguments.all_trades, start_timestamp, end_timestamp)
 
         prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, None, start_timestamp, end_timestamp)
         alternative_prices = get_prices(None, self.arguments.alternative_price_feed, None, start_timestamp, end_timestamp)

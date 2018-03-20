@@ -115,7 +115,7 @@ def cache_folder():
     return db_folder
 
 
-def get_all_trades(endpoint: Optional[str], start_timestamp: int, end_timestamp: int):
+def get_trades(endpoint: Optional[str], start_timestamp: int, end_timestamp: int):
     if endpoint is not None:
         result = requests.get(f"{endpoint}&min={start_timestamp}&max={end_timestamp}")
 
