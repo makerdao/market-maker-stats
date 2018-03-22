@@ -3,10 +3,15 @@
 [![Build Status](https://travis-ci.org/makerdao/market-maker-stats.svg?branch=master)](https://travis-ci.org/makerdao/market-maker-stats)
 [![codecov](https://codecov.io/gh/makerdao/market-maker-stats/branch/master/graph/badge.svg)](https://codecov.io/gh/makerdao/market-maker-stats)
 
-A set of tools for collecting data from the `market-maker-keeper`
-(<https://github.com/makerdao/market-maker-keeper>) keepers.
+A set of tools for visualizing market making data.
 
-The following tools are available in this repository:
+The following tools are built according to the new architecture, and they retrieve
+trade history from HTTP endpoints exposed by `trade-service` (<https://github.com/makerdao/trade-service>):
+* `market-maker-chart` (trade chart tool),
+* `market-maker-pnl` (profitability calculation tool),
+* `market-maker-trades` (trade history dumping tool).
+
+The following tools still use the old approach i.e. they interact with the exchanges directly:
 * `oasis-market-maker-chart` (trade chart tool for OasisDEX),
 * `oasis-market-maker-pnl` (profitability calculation tool for OasisDEX),
 * `oasis-market-maker-trades` (trade history dumping tool for OasisDEX),
@@ -15,16 +20,7 @@ The following tools are available in this repository:
 * `etherdelta-market-maker-trades` (trade history dumping tool for EtherDelta),
 * `0x-market-maker-chart` (trade chart tool for 0x exchanges),
 * `0x-market-maker-pnl` (profitability calculation tool for 0x exchanges),
-* `0x-market-maker-trades` (trade history dumping tool for 0x exchanges),
-* `paradex-market-maker-chart` (trade chart tool for Paradex),
-* `paradex-market-maker-pnl` (profitability calculation tool for Paradex),
-* `paradex-market-maker-trades` (trade history dumping tool for Paradex),
-* `bibox-market-maker-chart` (trade chart tool for Bibox),
-* `bibox-market-maker-pnl` (profitability calculation tool for Bibox),
-* `bibox-market-maker-trades` (trade history dumping tool for Bibox),
-* `gateio-market-maker-chart` (trade chart tool for gate.io),
-* `gateio-market-maker-pnl` (profitability calculation tool for gate.io),
-* `gateio-market-maker-trades` (trade history dumping tool for gate.io).
+* `0x-market-maker-trades` (trade history dumping tool for 0x exchanges).
 
 <https://chat.makerdao.com/channel/keeper>
 
@@ -46,8 +42,9 @@ For some known macOS issues see the [pymaker](https://github.com/makerdao/pymake
 ## Trade chart tools
 
 These tools draw a chart with either the historical GDAX ETH/USD price, the historical GDAX BTC/USD price,
-or any other price which history has been archived in `streamer`, and recent trades which took place with the keeper
-(represented as dots). The size of the dots depends on the trade volume. This way we can clearly
+or any other price which history has been archived in `streamer`, recent trades which took place with the keeper
+(represented as blue or green dots) and all recent trades which took place on this specific market (represented
+as pink dots). The size of the dots depends on the trade volume. This way we can clearly
 spot if the keeper is not creating dangerous arbitrage opportunities.
 
 In case of OasisDEX (the `oasis-market-maker-chart` tool), closest bids and asks will also be shown
@@ -97,15 +94,10 @@ Taker address is only present for OasisDEX.
 Example text output:
 
 ```
-Trade history on the ETH/DAI pair:
-
        Date/time          Type       Price       Amount in ETH   Value in DAI                      Taker
 ===========================================================================================================================
 2018-01-01 10:00:00 UTC   Buy     990.57615003      5.85517832   5800.00000000   0x8eb07c216cc1a46f135eb67d9ce9c7465893ccf9
 2018-01-02 11:30:00 UTC   Sell    990.57615003      6.14822530   6090.28534500   0x78e134c3da7fb2b1b0e04e1bb3cdeb67d14e7a6d
-
-Buy  = Somebody bought DAI from the keeper
-Sell = Somebody sold DAI to the keeper
 
 Number of trades: 2
 Generated at: 2018.01.02 11:36:18 UTC
