@@ -168,7 +168,7 @@ def get_order_history(endpoint: Optional[str], start_timestamp: int, end_timesta
     if endpoint is None:
         return []
 
-    result = requests.get(f"{endpoint}?min={start_timestamp}&max={end_timestamp}")
+    result = requests.get(f"{endpoint}?min={start_timestamp}&max={end_timestamp}", timeout=15.5)
 
     if not result.ok:
         raise Exception(f"Unable to fetch trades from the endpoint: {result.status_code} {result.reason}")
@@ -199,7 +199,7 @@ def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
 
 
 def get_price_feed(endpoint: str, start_timestamp: int, end_timestamp: int):
-    result = requests.get(f"{endpoint}?min={start_timestamp}&max={end_timestamp}")
+    result = requests.get(f"{endpoint}?min={start_timestamp}&max={end_timestamp}", timeout=15.5)
     if not result.ok:
         raise Exception(f"Failed to fetch price feed history: {result.status_code} {result.reason}")
 
