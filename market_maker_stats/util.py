@@ -234,7 +234,7 @@ def gdax_batch_end(batch_begin):
 
 def gdax_fetch(url):
     try:
-        data = requests.get(url).json()
+        data = requests.get(url, timeout=30.5).json()
     except:
         logging.info("GDAX API network error, waiting 10 secs...")
         time.sleep(10)
