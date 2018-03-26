@@ -23,7 +23,8 @@ from typing import List, Optional
 
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.chart import initialize_charting, prepare_prices_for_charting, draw_prices, draw_trades
+from market_maker_stats.chart import initialize_charting, prepare_prices_for_charting, draw_prices, draw_trades, \
+    draw_chart
 from market_maker_stats.model import AllTrade
 from market_maker_stats.oasis import our_oasis_trades, Trade, all_oasis_trades
 from market_maker_stats.util import amount_in_usd_to_size, get_block_timestamp, \
@@ -142,7 +143,7 @@ class OasisMarketMakerChart:
         our_trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, takes)
         all_trades = all_oasis_trades(self.buy_token_address, self.sell_token_address, takes)
 
-        self.draw(start_timestamp, end_timestamp, states, our_trades, all_trades, prices, alternative_prices)
+        draw_chart(start_timestamp, end_timestamp, prices, alternative_prices, states, our_trades, all_trades, self.arguments.output)
 
     def tighten_timestamps(self, timestamps: list) -> list:
         if len(timestamps) == 0:
@@ -160,31 +161,6 @@ class OasisMarketMakerChart:
             result.append(timestamps[index])
 
         return result
-
-    def draw(self, start_timestamp: int, end_timestamp: int, states: List[State], our_trades: List[Trade], all_trades: List[AllTrade], prices: List[Price], alternative_prices: List[Price]):
-        import matplotlib.dates as md
-        import matplotlib.pyplot as plt
-
-        plt.subplots_adjust(bottom=0.2)
-        plt.xticks(rotation=25)
-        ax=plt.gca()
-        ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
-        ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
-
-        timestamps = list(map(timestamp_to_x, map(lambda state: state.timestamp, states)))
-        closest_sell_prices = list(map(lambda state: state.closest_sell_price(), states))
-        closest_buy_prices = list(map(lambda state: state.closest_buy_price(), states))
-
-        plt.plot_date(timestamps, closest_sell_prices, 'b-', zorder=2)
-        plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=2)
-
-        draw_prices(prices, alternative_prices)
-        draw_trades(our_trades, all_trades)
-
-        if self.arguments.output:
-            plt.savefig(fname=self.arguments.output, dpi=300, bbox_inches='tight', pad_inches=0)
-        else:
-            plt.show()
 
     def apply_make(self, order_book: List[Order], log_make: LogMake) -> List[Order]:
         return order_book + [Order(self.otc,

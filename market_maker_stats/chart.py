@@ -44,6 +44,7 @@ def draw_chart(start_timestamp: int,
                end_timestamp: int,
                prices: List[Price],
                alternative_prices: List[Price],
+               order_history: list,
                our_trades: list,
                all_trades: list,
                output: Optional[str]):
@@ -55,6 +56,13 @@ def draw_chart(start_timestamp: int,
     ax=plt.gca()
     ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
+
+    timestamps = list(map(timestamp_to_x, map(lambda state: state.timestamp, order_history)))
+    closest_sell_prices = list(map(lambda state: state.closest_sell_price(), order_history))
+    closest_buy_prices = list(map(lambda state: state.closest_buy_price(), order_history))
+
+    plt.plot_date(timestamps, closest_sell_prices, 'b-', zorder=2)
+    plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=2)
 
     draw_prices(prices, alternative_prices)
     draw_trades(our_trades, all_trades)

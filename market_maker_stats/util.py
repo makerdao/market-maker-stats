@@ -71,6 +71,30 @@ class Price:
         return pformat(vars(self))
 
 
+class OrderHistoryItem:
+    def __init__(self, timestamp: int, orders: list):
+        self.timestamp = timestamp
+        self.orders = orders
+
+    def closest_sell_price(self) -> Optional[Wad]:
+        return min(self.sell_prices(), default=None)
+
+    def closest_buy_price(self) -> Optional[Wad]:
+        return max(self.buy_prices(), default=None)
+
+    def sell_orders(self) -> list:
+        return list(filter(lambda order: order['type'] == 'sell', self.orders))
+
+    def sell_prices(self) -> List[Wad]:
+        return list(map(lambda order: Wad.from_number(order['price']), self.sell_orders()))
+
+    def buy_orders(self) -> list:
+        return list(filter(lambda order: order['type'] == 'buy', self.orders))
+
+    def buy_prices(self) -> List[Wad]:
+        return list(map(lambda order: Wad.from_number(order['price']), self.buy_orders()))
+
+
 def to_seconds(string: str) -> int:
     assert(isinstance(string, str))
     seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
@@ -138,6 +162,19 @@ def get_prices(gdax_price: Optional[str], price_feed: Optional[str], price_histo
         return get_gdax_prices(gdax_price, start_timestamp, end_timestamp)
     else:
         return []
+
+
+def get_order_history(endpoint: Optional[str], start_timestamp: int, end_timestamp: int):
+    if endpoint is None:
+        return []
+
+    result = requests.get(f"{endpoint}?min={start_timestamp}&max={end_timestamp}")
+
+    if not result.ok:
+        raise Exception(f"Unable to fetch trades from the endpoint: {result.status_code} {result.reason}")
+
+    return list(map(lambda item: OrderHistoryItem(timestamp=int(item['timestamp']),
+                                                  orders=list(item['orders'])), result.json()['items']))
 
 
 def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
