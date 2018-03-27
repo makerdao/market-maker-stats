@@ -30,6 +30,9 @@ def initialize_charting(output: Optional[str]):
 # In order to avoid it, we add an empty price # between all values which are at least 3 minutes apart.
 # This way a nice visual gap will be seen in the chart as well.
 def prepare_prices_for_charting(prices: List[Price]) -> List[Price]:
+    if len(prices) == 0:
+        return prices
+
     result = [prices[0]]
     for i in range(1, len(prices)):
         if prices[i].timestamp - prices[i-1].timestamp > 180:
@@ -42,6 +45,9 @@ def prepare_prices_for_charting(prices: List[Price]) -> List[Price]:
 
 # Same for order history actually.
 def prepare_order_history_for_charting(items: List[OrderHistoryItem]) -> List[OrderHistoryItem]:
+    if len(items) == 0:
+        return items
+
     result = [items[0]]
     for i in range(1, len(items)):
         if items[i].timestamp - items[i - 1].timestamp > 180:
