@@ -17,7 +17,7 @@
 
 from typing import List, Optional
 
-from market_maker_stats.util import Price, amount_to_size, timestamp_to_x, amount_in_usd_to_size
+from market_maker_stats.util import Price, amount_to_size, timestamp_to_x, amount_in_usd_to_size, OrderHistoryItem
 
 
 def initialize_charting(output: Optional[str]):
@@ -40,6 +40,18 @@ def prepare_prices_for_charting(prices: List[Price]) -> List[Price]:
     return result
 
 
+# Same for order history actually.
+def prepare_order_history_for_charting(items: List[OrderHistoryItem]) -> List[OrderHistoryItem]:
+    result = [items[0]]
+    for i in range(1, len(items)):
+        if items[i].timestamp - items[i - 1].timestamp > 180:
+            result.append(OrderHistoryItem(items[i - 1].timestamp + 1, []))
+
+        result.append(items[i])
+
+    return result
+
+
 def draw_chart(start_timestamp: int,
                end_timestamp: int,
                prices: List[Price],
@@ -57,9 +69,10 @@ def draw_chart(start_timestamp: int,
     ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
-    timestamps = list(map(timestamp_to_x, map(lambda state: state.timestamp, order_history)))
-    closest_sell_prices = list(map(lambda state: state.closest_sell_price(), order_history))
-    closest_buy_prices = list(map(lambda state: state.closest_buy_price(), order_history))
+    order_history = prepare_order_history_for_charting(order_history)
+    timestamps = list(map(timestamp_to_x, map(lambda item: item.timestamp, order_history)))
+    closest_sell_prices = list(map(lambda item: item.closest_sell_price(), order_history))
+    closest_buy_prices = list(map(lambda item: item.closest_buy_price(), order_history))
 
     plt.plot_date(timestamps, closest_sell_prices, 'b-', zorder=2)
     plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=2)
