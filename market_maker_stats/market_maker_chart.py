@@ -19,7 +19,7 @@ import argparse
 import sys
 import time
 
-from market_maker_stats.chart import initialize_charting, draw_chart
+from market_maker_stats.chart import initialize_charting, draw_chart, prepare_order_history_for_charting
 from market_maker_stats.util import to_seconds, initialize_logging, get_prices, get_trades, get_order_history
 
 
@@ -51,7 +51,9 @@ class MarketMakerChart:
 
         prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, None, start_timestamp, end_timestamp)
         alternative_prices = get_prices(None, self.arguments.alternative_price_feed, None, start_timestamp, end_timestamp)
+
         order_history = get_order_history(self.arguments.order_history, start_timestamp, end_timestamp)
+        order_history = prepare_order_history_for_charting(order_history)
 
         draw_chart(start_timestamp, end_timestamp, prices, alternative_prices, order_history, our_trades, all_trades, self.arguments.output)
 

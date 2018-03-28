@@ -17,6 +17,8 @@
 
 from typing import List, Optional
 
+import pytz
+
 from market_maker_stats.util import Price, amount_to_size, timestamp_to_x, amount_in_usd_to_size, OrderHistoryItem
 
 
@@ -75,7 +77,6 @@ def draw_chart(start_timestamp: int,
     ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
 
-    order_history = prepare_order_history_for_charting(order_history)
     timestamps = list(map(timestamp_to_x, map(lambda item: item.timestamp, order_history)))
     closest_sell_prices = list(map(lambda item: item.closest_sell_price(), order_history))
     closest_buy_prices = list(map(lambda item: item.closest_buy_price(), order_history))
