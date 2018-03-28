@@ -80,8 +80,8 @@ def draw_chart(start_timestamp: int,
     closest_sell_prices = list(map(lambda item: item.closest_sell_price(), order_history))
     closest_buy_prices = list(map(lambda item: item.closest_buy_price(), order_history))
 
-    plt.plot_date(timestamps, closest_sell_prices, 'b-', zorder=2)
-    plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=2)
+    plt.plot_date(timestamps, closest_sell_prices, 'b-', zorder=2, linewidth=1)
+    plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=2, linewidth=1)
 
     draw_prices(prices, alternative_prices)
     draw_trades(our_trades, all_trades)
