@@ -75,7 +75,7 @@ def draw_chart(start_timestamp: int,
     plt.xticks(rotation=25)
     ax=plt.gca()
     ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
-    ax.xaxis.set_major_formatter(md.DateFormatter('%d-%b %H:%M'))
+    ax.xaxis.set_major_formatter(md.DateFormatter('%d-%b %H:%M', tz=pytz.UTC))
 
     timestamps = list(map(timestamp_to_x, map(lambda item: item.timestamp, order_history)))
     closest_sell_prices = list(map(lambda item: item.closest_sell_price(), order_history))

@@ -315,7 +315,7 @@ def format_timestamp(timestamp: int):
 
 def timestamp_to_x(timestamp):
     from matplotlib.dates import date2num
-    return date2num(datetime.datetime.fromtimestamp(int(timestamp)))
+    return date2num(datetime.datetime.fromtimestamp(int(timestamp), tz=pytz.UTC))
 
 
 def sort_trades(trades: list) -> list:
