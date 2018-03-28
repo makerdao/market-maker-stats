@@ -191,7 +191,7 @@ def pnl_chart(start_timestamp: int, end_timestamp: int, prices: List[Price], tra
 
     fig, ax = plt.subplots()
     ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
-    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d %H:%M:%S'))
+    ax.xaxis.set_major_formatter(md.DateFormatter('%d-%b %H:%M'))
     plt.subplots_adjust(bottom=0.2)
     plt.xticks(rotation=25)
     ax2 = ax.twinx()
