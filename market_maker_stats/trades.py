@@ -31,7 +31,7 @@ def json_trades(trades: list, output: Optional[str], include_taker: bool = False
         item = {
             'datetime': format_timestamp(trade.timestamp),
             'timestamp': trade.timestamp,
-            'type': "Sell" if trade.is_sell else "Buy",
+            'type': "Sell" if trade.is_sell is True else "Buy" if trade.is_sell is False else "n/a",
             'price': float(trade.price),
             'amount': float(trade.amount),
             'money': float(trade.money)
@@ -72,7 +72,7 @@ def text_trades(buy_token, sell_token, trades, output: Optional[str], include_ta
 
     def table_row(trade) -> list:
         return [format_timestamp(trade.timestamp),
-                "Sell" if trade.is_sell else "Buy",
+                "Sell" if trade.is_sell is True else "Buy" if trade.is_sell is False else "n/a",
                 format(float(trade.price), '.8f'),
                 ' '*5 + format(float(trade.amount), '.8f') + ' ' + amount_symbol(trade),
                 ' '*3 + format(float(trade.money), '.8f') + ' ' + money_symbol(trade)] + ([str(trade.taker)] if include_taker else [])
