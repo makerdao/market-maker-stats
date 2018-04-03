@@ -106,6 +106,8 @@ def amount_to_size(symbol: str, amount: Wad):
         amount_in_usd = amount
     elif symbol.upper() in ['USD', 'USDT']:
         amount_in_usd = amount
+    elif symbol.upper() == 'KRW':
+        amount_in_usd = amount / 1000
     elif symbol.upper() == 'BTC':
         amount_in_usd = amount * 10000
     elif symbol.upper() == 'ETH':
