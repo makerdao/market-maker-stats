@@ -52,6 +52,16 @@ class Price:
         self.sell_price = sell_price
         self.volume = volume
 
+    def inverse(self):
+        def inv_optional(x: Optional[float]):
+            return 1/x if x is not None else None
+
+        return Price(timestamp=self.timestamp,
+                     price=inv_optional(self.price),
+                     buy_price=inv_optional(self.buy_price),
+                     sell_price=inv_optional(self.sell_price),
+                     volume=self.volume)
+
     def __eq__(self, other):
         assert(isinstance(other, Price))
         return self.timestamp == other.timestamp and \
@@ -254,6 +264,12 @@ def get_gdax_partial(product: str, timestamp_range_start: int, timestamp_range_e
     assert(isinstance(product, str))
     assert(isinstance(timestamp_range_start, int))
     assert(isinstance(timestamp_range_end, int))
+
+    if product == 'USD-ETH':
+        return list(map(lambda price: price.inverse(), get_gdax_partial('ETH-USD', timestamp_range_start, timestamp_range_end)))
+
+    if product == 'USD-BTC':
+        return list(map(lambda price: price.inverse(), get_gdax_partial('BTC-USD', timestamp_range_start, timestamp_range_end)))
 
     # We only cache batches if their end timestamp is at least one hour in the past.
     # There is no good reason for choosing exactly one hour as the cutoff time.
