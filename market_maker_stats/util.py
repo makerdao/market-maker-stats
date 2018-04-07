@@ -211,6 +211,16 @@ def get_file_prices(filename: str, start_timestamp: int, end_timestamp: int):
 
 
 def get_price_feed(endpoint: str, start_timestamp: int, end_timestamp: int):
+
+    if endpoint.startswith("fixed:"):
+        price = Wad.from_number(endpoint.replace("fixed:", ""))
+
+        result = []
+        for timestamp in range(start_timestamp, end_timestamp, 60):
+            result.append(Price(timestamp=timestamp, price=price, buy_price=price, sell_price=price, volume=None))
+
+        return result
+
     result = requests.get(f"{endpoint}?min={start_timestamp}&max={end_timestamp}", timeout=15.5)
     if not result.ok:
         raise Exception(f"Failed to fetch price feed history: {result.status_code} {result.reason}")
