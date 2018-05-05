@@ -154,7 +154,7 @@ def cache_folder():
 
 def get_trades(endpoint: Optional[str], start_timestamp: int, end_timestamp: int):
     if endpoint is not None:
-        trades = trade_client.get_trades(endpoint, start_timestamp, end_timestamp)
+        trades = trade_client.get_trades(endpoint, start_timestamp, end_timestamp, 60.5)
 
         return list(map(lambda item: AllTrade(pair=item.pair,
                                               timestamp=item.timestamp,
