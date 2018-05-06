@@ -67,7 +67,7 @@ class ZrxMarketMakerChart:
         end_timestamp = int(time.time())
 
         events = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
-        trades = zrx_trades(self.infura, self.market_maker_address, self.sai_address, [self.weth_address, self.old_weth_address], events)
+        trades = zrx_trades(self.infura, self.market_maker_address, self.sai_address, [self.weth_address, self.old_weth_address], events, '-')
 
         prices = get_gdax_prices(self.arguments.gdax_price, start_timestamp, end_timestamp)
 

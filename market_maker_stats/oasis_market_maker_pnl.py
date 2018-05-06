@@ -78,7 +78,7 @@ class OasisMarketMakerPnl:
         end_timestamp = int(time.time())
 
         events = self.otc.past_take(self.arguments.past_blocks)
-        trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, events)
+        trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, events, '-')
         trades = sort_trades_for_pnl(trades)
 
         prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, self.arguments.price_history_file, start_timestamp, end_timestamp)

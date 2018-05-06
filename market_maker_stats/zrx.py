@@ -26,7 +26,10 @@ from pymaker.zrx import LogFill
 
 
 class Trade:
-    def __init__(self, timestamp: int, price: Wad, amount: Wad, money: Wad, is_sell: bool, taker: Address):
+    def __init__(self, exchange: str, maker: str, pair: str, timestamp: int, price: Wad, amount: Wad, money: Wad, is_sell: bool, taker: Address):
+        self.exchange = exchange
+        self.maker = maker
+        self.pair = pair
         self.timestamp = timestamp
         self.price = price
         self.amount = amount
@@ -35,7 +38,7 @@ class Trade:
         self.taker = taker
 
 
-def zrx_trades(infura: Web3, market_maker_address: Address, sai_address: Address, weth_addresses: List[Address], past_fills: List[LogFill]) -> list:
+def zrx_trades(infura: Web3, market_maker_address: Address, sai_address: Address, weth_addresses: List[Address], past_fills: List[LogFill], exchange_name: str) -> list:
     assert(isinstance(infura, Web3))
     assert(isinstance(market_maker_address, Address))
     assert(isinstance(sai_address, Address))
@@ -43,11 +46,11 @@ def zrx_trades(infura: Web3, market_maker_address: Address, sai_address: Address
     assert(isinstance(past_fills, list))
 
     def sell_trades() -> List[Trade]:
-        return list(map(lambda log_fill: Trade(get_event_timestamp(infura, log_fill), log_fill.filled_buy_amount / log_fill.filled_pay_amount, log_fill.filled_pay_amount, log_fill.filled_buy_amount, True, log_fill.taker),
+        return list(map(lambda log_fill: Trade(exchange_name, log_fill.maker, 'WETH-DAI', get_event_timestamp(infura, log_fill), log_fill.filled_buy_amount / log_fill.filled_pay_amount, log_fill.filled_pay_amount, log_fill.filled_buy_amount, True, log_fill.taker),
                         filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token == sai_address and log_take.pay_token in weth_addresses, past_fills)))
 
     def buy_trades() -> List[Trade]:
-        return list(map(lambda log_fill: Trade(get_event_timestamp(infura, log_fill), log_fill.filled_pay_amount / log_fill.filled_buy_amount, log_fill.filled_buy_amount, log_fill.filled_pay_amount, False, log_fill.taker),
+        return list(map(lambda log_fill: Trade(exchange_name, log_fill.maker, 'WETH-DAI', get_event_timestamp(infura, log_fill), log_fill.filled_pay_amount / log_fill.filled_buy_amount, log_fill.filled_buy_amount, log_fill.filled_pay_amount, False, log_fill.taker),
                         filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token in weth_addresses and log_take.pay_token == sai_address, past_fills)))
 
     trades = sell_trades() + buy_trades()

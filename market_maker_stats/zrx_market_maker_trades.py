@@ -42,6 +42,7 @@ class ZrxMarketMakerTrades:
         parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
         parser.add_argument("--rpc-timeout", help="JSON-RPC timeout (in seconds, default: 60)", type=int, default=60)
         parser.add_argument("--exchange-address", help="Ethereum address of the 0x contract", required=True, type=str)
+        parser.add_argument("--exchange-name", help="Exchange name for including in the JSON file", required=True, type=str)
         parser.add_argument("--sai-address", help="Ethereum address of the SAI token", required=True, type=str)
         parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
         parser.add_argument("--old-weth-address", help="Ethereum address of the old WETH token", required=True, type=str)
@@ -75,7 +76,7 @@ class ZrxMarketMakerTrades:
 
     def main(self):
         past_fills = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
-        trades = zrx_trades(self.infura, self.market_maker_address, self.sai_address, [self.weth_address, self.old_weth_address], past_fills)
+        trades = zrx_trades(self.infura, self.market_maker_address, self.sai_address, [self.weth_address, self.old_weth_address], past_fills, self.arguments.exchange_name)
         trades = sort_trades(trades)
 
         if self.arguments.text:

@@ -29,6 +29,8 @@ def json_trades(trades: list, output: Optional[str], include_taker: bool = False
 
     def build_item(trade) -> dict:
         item = {
+            'exchange': trade.exchange,
+            'pair': trade.pair,
             'datetime': format_timestamp(trade.timestamp),
             'timestamp': trade.timestamp,
             'type': "Sell" if trade.is_sell is True else "Buy" if trade.is_sell is False else "n/a",
@@ -36,6 +38,12 @@ def json_trades(trades: list, output: Optional[str], include_taker: bool = False
             'amount': float(trade.amount),
             'money': float(trade.money)
         }
+
+        try:
+            if trade.maker is not None:
+                item['maker'] = str(trade.maker)
+        except:
+            pass
 
         if include_taker:
             item['taker'] = str(trade.taker)

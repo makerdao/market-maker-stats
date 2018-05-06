@@ -20,13 +20,18 @@ from pymaker import Wad
 
 
 class AllTrade:
-    def __init__(self, pair: str, timestamp: int, is_sell: Optional[bool], amount: Wad, price: Wad):
+    def __init__(self, exchange: str, maker: Optional[str], pair: str, timestamp: int, is_sell: Optional[bool], amount: Wad, price: Wad):
+        assert(isinstance(exchange, str))
+        assert(isinstance(maker, str) or (maker is None))
         assert(isinstance(pair, str))
         assert(isinstance(is_sell, bool) or (is_sell is None))
         assert(isinstance(timestamp, int))
         assert(isinstance(amount, Wad))
         assert(isinstance(price, Wad))
 
+        self.exchange = exchange
+        self.maker = maker
+        self.pair = pair
         self.timestamp = timestamp
         self.is_sell = is_sell
         self.amount = amount

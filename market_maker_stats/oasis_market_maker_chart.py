@@ -140,7 +140,7 @@ class OasisMarketMakerChart:
         alternative_prices = get_prices(None, self.arguments.alternative_price_feed, None, start_timestamp, end_timestamp)
 
         takes = list(filter(lambda log_take: log_take.timestamp >= start_timestamp, past_take))
-        our_trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, takes)
+        our_trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, takes, '-')
         all_trades = all_oasis_trades(self.buy_token_address, self.sell_token_address, takes)
 
         draw_chart(start_timestamp, end_timestamp, prices, alternative_prices, states, our_trades, all_trades, self.arguments.output)

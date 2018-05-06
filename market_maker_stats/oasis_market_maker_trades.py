@@ -70,7 +70,8 @@ class OasisMarketMakerTrades:
 
     def main(self):
         take_events = self.otc.past_take(self.arguments.past_blocks)
-        trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, take_events)
+        pair = self.arguments.sell_token + "-" + self.arguments.buy_token
+        trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, take_events, pair)
         trades = sort_trades(trades)
 
         if self.arguments.text:
