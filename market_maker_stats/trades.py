@@ -39,11 +39,8 @@ def json_trades(trades: list, output: Optional[str], include_taker: bool = False
             'money': float(trade.money)
         }
 
-        try:
-            if trade.maker is not None:
-                item['maker'] = str(trade.maker)
-        except:
-            pass
+        if trade.maker is not None:
+            item['maker'] = str(trade.maker)
 
         if include_taker:
             item['taker'] = str(trade.taker)
@@ -80,6 +77,9 @@ def text_trades(buy_token, sell_token, trades, output: Optional[str], include_ta
 
     def table_row(trade) -> list:
         return [format_timestamp(trade.timestamp),
+                trade.exchange,
+                trade.maker if trade.maker is not None else "n/a",
+                trade.pair,
                 "Sell" if trade.is_sell is True else "Buy" if trade.is_sell is False else "n/a",
                 format(float(trade.price), '.8f'),
                 ' '*5 + format(float(trade.amount), '.8f') + ' ' + amount_symbol(trade),
@@ -87,9 +87,12 @@ def text_trades(buy_token, sell_token, trades, output: Optional[str], include_ta
 
     table = Texttable(max_width=250)
     table.set_deco(Texttable.HEADER)
-    table.set_cols_dtype(['t', 't', 't', 't', 't'] + (['t'] if include_taker else []))
-    table.set_cols_align(['l', 'l', 'r', 'r', 'r'] + (['l'] if include_taker else []))
+    table.set_cols_dtype(['t', 't', 't', 't', 't', 't', 't', 't'] + (['t'] if include_taker else []))
+    table.set_cols_align(['l', 'l', 'l', 'l', 'l', 'r', 'r', 'r'] + (['l'] if include_taker else []))
     table.add_rows([["Date/time",
+                     "Exchange",
+                     "Maker",
+                     "Pair",
                      "Type",
                      "Price",
                      f"Amount",
