@@ -6,7 +6,7 @@
 A set of tools for visualizing market making data.
 
 The following tools are built according to the new architecture, and they retrieve
-trade history from HTTP endpoints exposed by `trade-service` (<https://github.com/makerdao/trade-service>):
+trade history from HTTP endpoints exposed by `trade-service` (<https://github.com/LiquidityProviders/trade-service>):
 * `market-maker-chart` (trade chart tool),
 * `market-maker-pnl` (profitability calculation tool),
 * `market-maker-trades` (trade history dumping tool).
