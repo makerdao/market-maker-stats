@@ -23,10 +23,10 @@ from typing import List
 
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.chart import initialize_charting, draw_chart
+from market_maker_stats.chart import initialize_charting, draw_chart, prepare_order_history_for_charting
 from market_maker_stats.zrx import zrx_trades, Trade
 from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, Price, get_block_timestamp, \
-    timestamp_to_x, initialize_logging
+    timestamp_to_x, initialize_logging, get_order_history
 from pymaker import Address
 from pymaker.zrx import ZrxExchange
 
@@ -45,6 +45,7 @@ class ZrxMarketMakerChart:
         parser.add_argument("--old-weth-address", help="Ethereum address of the old WETH token", required=True, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", required=True, type=str)
+        parser.add_argument("--order-history", help="Order history endpoint from which to fetch our order history", type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
                                                    " Will get displayed on-screen if empty", required=False, type=str)
@@ -71,7 +72,10 @@ class ZrxMarketMakerChart:
 
         prices = get_gdax_prices(self.arguments.gdax_price, start_timestamp, end_timestamp)
 
-        draw_chart(start_timestamp, end_timestamp, prices, [], [], trades, [], self.arguments.output)
+        order_history = get_order_history(self.arguments.order_history, start_timestamp, end_timestamp)
+        order_history = prepare_order_history_for_charting(order_history)
+
+        draw_chart(start_timestamp, end_timestamp, prices, [], order_history, trades, [], self.arguments.output)
 
 
 if __name__ == '__main__':
