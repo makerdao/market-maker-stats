@@ -6,7 +6,4 @@ requests == 2.18.4
 numpy == 1.14.0
 matplotlib == 2.1.0
 texttable == 1.2.1
-appdirs == 1.4.3
-tinydb == 3.7.0
-filelock == 3.0.0
 python-dateutil == 2.6.1
