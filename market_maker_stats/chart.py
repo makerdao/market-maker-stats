@@ -102,7 +102,7 @@ def draw_prices(prices, alternative_prices):
         buy_prices = list(map(lambda price: price.buy_price if price.buy_price is not None else price.price, prices))
         sell_prices = list(map(lambda price: price.sell_price if price.sell_price is not None else price.price, prices))
 
-        plt.plot_date(timestamps, buy_prices, 'r-', zorder=2)
+        plt.plot_date(timestamps, buy_prices, 'c-', zorder=2)
         plt.plot_date(timestamps, sell_prices, 'r-', zorder=2)
 
     if len(alternative_prices) > 0:
