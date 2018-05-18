@@ -38,20 +38,20 @@ class Trade:
         self.taker = taker
 
 
-def zrx_trades(infura: Web3, market_maker_address: Address, sai_address: Address, weth_addresses: List[Address], past_fills: List[LogFill], exchange_name: str) -> list:
+def zrx_trades(infura: Web3, market_maker_address: Address, buy_token_address: Address, sell_token_addresses: List[Address], past_fills: List[LogFill], exchange_name: str) -> list:
     assert(isinstance(infura, Web3))
     assert(isinstance(market_maker_address, Address))
-    assert(isinstance(sai_address, Address))
-    assert(isinstance(weth_addresses, list))
+    assert(isinstance(buy_token_address, Address))
+    assert(isinstance(sell_token_addresses, list))
     assert(isinstance(past_fills, list))
 
     def sell_trades() -> List[Trade]:
         return list(map(lambda log_fill: Trade(exchange_name, log_fill.maker, 'WETH-DAI', get_event_timestamp(infura, log_fill), log_fill.filled_buy_amount / log_fill.filled_pay_amount, log_fill.filled_pay_amount, log_fill.filled_buy_amount, True, log_fill.taker),
-                        filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token == sai_address and log_take.pay_token in weth_addresses, past_fills)))
+                        filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token == buy_token_address and log_take.pay_token in sell_token_addresses, past_fills)))
 
     def buy_trades() -> List[Trade]:
         return list(map(lambda log_fill: Trade(exchange_name, log_fill.maker, 'WETH-DAI', get_event_timestamp(infura, log_fill), log_fill.filled_pay_amount / log_fill.filled_buy_amount, log_fill.filled_buy_amount, log_fill.filled_pay_amount, False, log_fill.taker),
-                        filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token in weth_addresses and log_take.pay_token == sai_address, past_fills)))
+                        filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token in sell_token_addresses and log_take.pay_token == buy_token_address, past_fills)))
 
     trades = sell_trades() + buy_trades()
     return sorted(trades, key=lambda trade: trade.timestamp)

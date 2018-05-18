@@ -43,9 +43,11 @@ class ZrxMarketMakerTrades:
         parser.add_argument("--rpc-timeout", help="JSON-RPC timeout (in seconds, default: 60)", type=int, default=60)
         parser.add_argument("--exchange-address", help="Ethereum address of the 0x contract", required=True, type=str)
         parser.add_argument("--exchange-name", help="Exchange name for including in the JSON file", required=True, type=str)
-        parser.add_argument("--sai-address", help="Ethereum address of the SAI token", required=True, type=str)
-        parser.add_argument("--weth-address", help="Ethereum address of the WETH token", required=True, type=str)
-        parser.add_argument("--old-weth-address", help="Ethereum address of the old WETH token", required=True, type=str)
+        parser.add_argument("--buy-token", help="Name of the buy token", required=True, type=str)
+        parser.add_argument("--buy-token-address", help="Ethereum address of the buy token token", required=True, type=str)
+        parser.add_argument("--sell-token", help="Name of the sell token", required=True, type=str)
+        parser.add_argument("--sell-token-address", help="Ethereum address of the sell token", required=True, type=str)
+        parser.add_argument("--old-sell-token-address", help="Ethereum address of the old sell token", required=True, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="File to save the table or the JSON to", required=False, type=str)
@@ -59,28 +61,22 @@ class ZrxMarketMakerTrades:
         self.web3 = Web3(HTTPProvider(endpoint_uri=f"http://{self.arguments.rpc_host}:{self.arguments.rpc_port}",
                                       request_kwargs={'timeout': self.arguments.rpc_timeout}))
         self.infura = Web3(HTTPProvider(endpoint_uri=f"https://mainnet.infura.io/", request_kwargs={'timeout': 120}))
-        self.sai_address = Address(self.arguments.sai_address)
-        self.weth_address = Address(self.arguments.weth_address)
-        self.old_weth_address = Address(self.arguments.old_weth_address)
+        self.buy_token_address = Address(self.arguments.buy_token_address)
+        self.sell_token_address = Address(self.arguments.sell_token_address)
+        self.old_sell_token_address = Address(self.arguments.old_sell_token_address)
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.exchange = ZrxExchange(web3=self.web3, address=Address(self.arguments.exchange_address))
 
         logging.basicConfig(format='%(asctime)-15s %(levelname)-8s %(message)s', level=logging.INFO)
         logging.getLogger("filelock").setLevel(logging.WARNING)
 
-    def sell_token(self):
-        return "ETH"
-
-    def buy_token(self):
-        return "DAI"
-
     def main(self):
         past_fills = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
-        trades = zrx_trades(self.infura, self.market_maker_address, self.sai_address, [self.weth_address, self.old_weth_address], past_fills, self.arguments.exchange_name)
+        trades = zrx_trades(self.infura, self.market_maker_address, self.buy_token_address, [self.sell_token_address, self.old_sell_token_address], past_fills, self.arguments.exchange_name)
         trades = sort_trades(trades)
 
         if self.arguments.text:
-            text_trades(self.buy_token(), self.sell_token(), trades, self.arguments.output, include_taker=True)
+            text_trades(self.arguments.buy_token, self.arguments.sell_token, trades, self.arguments.output, include_taker=True)
 
         if self.arguments.json:
             json_trades(trades, self.arguments.output, include_taker=True)
