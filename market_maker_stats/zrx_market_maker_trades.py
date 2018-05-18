@@ -47,7 +47,7 @@ class ZrxMarketMakerTrades:
         parser.add_argument("--buy-token-address", help="Ethereum address of the buy token token", required=True, type=str)
         parser.add_argument("--sell-token", help="Name of the sell token", required=True, type=str)
         parser.add_argument("--sell-token-address", help="Ethereum address of the sell token", required=True, type=str)
-        parser.add_argument("--old-sell-token-address", help="Ethereum address of the old sell token", required=True, type=str)
+        parser.add_argument("--old-sell-token-address", help="Ethereum address of the old sell token", required=False, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="File to save the table or the JSON to", required=False, type=str)
@@ -63,7 +63,7 @@ class ZrxMarketMakerTrades:
         self.infura = Web3(HTTPProvider(endpoint_uri=f"https://mainnet.infura.io/", request_kwargs={'timeout': 120}))
         self.buy_token_address = Address(self.arguments.buy_token_address)
         self.sell_token_address = Address(self.arguments.sell_token_address)
-        self.old_sell_token_address = Address(self.arguments.old_sell_token_address)
+        self.old_sell_token_address = Address(self.arguments.old_sell_token_address) if self.arguments.old_sell_token_address else None
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.exchange = ZrxExchange(web3=self.web3, address=Address(self.arguments.exchange_address))
 
