@@ -31,6 +31,7 @@ class MarketMakerChart:
         parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", type=str)
         parser.add_argument("--price-feed", help="Price endpoint to use as the price history source", type=str)
         parser.add_argument("--alternative-price-feed", help="Price endpoint to use as the alternative price history source", type=str)
+        parser.add_argument("--price-gap-size", help="Minimum gap which will be considered as price missing", default=180, type=int)
         parser.add_argument("--order-history", help="Order history endpoint from which to fetch our order history", type=str)
         parser.add_argument("--our-trades", help="Trades endpoint from which to fetch our trades", type=str)
         parser.add_argument("--all-trades", help="Trades endpoint from which to fetch all market trades", type=str)
@@ -55,7 +56,7 @@ class MarketMakerChart:
         order_history = get_order_history(self.arguments.order_history, start_timestamp, end_timestamp)
         order_history = prepare_order_history_for_charting(order_history)
 
-        draw_chart(start_timestamp, end_timestamp, prices, alternative_prices, order_history, our_trades, all_trades, self.arguments.output)
+        draw_chart(start_timestamp, end_timestamp, prices, alternative_prices, self.arguments.price_gap_size, order_history, our_trades, all_trades, self.arguments.output)
 
 
 if __name__ == '__main__':

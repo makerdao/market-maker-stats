@@ -29,15 +29,15 @@ def initialize_charting(output: Optional[str]):
 
 
 # If there is a gap in the price feed history, pyplot by default links it with a straight like.
-# In order to avoid it, we add an empty price # between all values which are at least 3 minutes apart.
+# In order to avoid it, we add an empty price # between all values which are at least `price_gap_size` minutes apart.
 # This way a nice visual gap will be seen in the chart as well.
-def prepare_prices_for_charting(prices: List[Price]) -> List[Price]:
+def prepare_prices_for_charting(prices: List[Price], price_gap_size: int) -> List[Price]:
     if len(prices) == 0:
         return prices
 
     result = [prices[0]]
     for i in range(1, len(prices)):
-        if prices[i].timestamp - prices[i-1].timestamp > 180:
+        if prices[i].timestamp - prices[i-1].timestamp > price_gap_size:
             result.append(Price(prices[i-1].timestamp + 1, None, None, None, None))
 
         result.append(prices[i])
@@ -64,6 +64,7 @@ def draw_chart(start_timestamp: int,
                end_timestamp: int,
                prices: List[Price],
                alternative_prices: List[Price],
+               price_gap_size: int,
                order_history: list,
                our_trades: list,
                all_trades: list,
@@ -84,7 +85,7 @@ def draw_chart(start_timestamp: int,
     plt.plot_date(timestamps, closest_sell_prices, 'b-', zorder=2, linewidth=1)
     plt.plot_date(timestamps, closest_buy_prices, 'g-', zorder=2, linewidth=1)
 
-    draw_prices(prices, alternative_prices)
+    draw_prices(prices, alternative_prices, price_gap_size)
     draw_trades(our_trades, all_trades)
 
     if output:
@@ -93,11 +94,11 @@ def draw_chart(start_timestamp: int,
         plt.show()
 
 
-def draw_prices(prices, alternative_prices):
+def draw_prices(prices, alternative_prices, price_gap_size):
     import matplotlib.pyplot as plt
 
     if len(prices) > 0:
-        prices = prepare_prices_for_charting(prices)
+        prices = prepare_prices_for_charting(prices, price_gap_size)
         timestamps = list(map(lambda price: timestamp_to_x(price.timestamp), prices))
         buy_prices = list(map(lambda price: price.buy_price if price.buy_price is not None else price.price, prices))
         sell_prices = list(map(lambda price: price.sell_price if price.sell_price is not None else price.price, prices))
@@ -106,7 +107,7 @@ def draw_prices(prices, alternative_prices):
         plt.plot_date(timestamps, sell_prices, 'r-', zorder=2)
 
     if len(alternative_prices) > 0:
-        alternative_prices = prepare_prices_for_charting(alternative_prices)
+        alternative_prices = prepare_prices_for_charting(alternative_prices, price_gap_size)
         timestamps = list(map(lambda price: timestamp_to_x(price.timestamp), alternative_prices))
         buy_prices = list(map(lambda price: price.buy_price if price.buy_price is not None else price.price, alternative_prices))
         sell_prices = list(map(lambda price: price.sell_price if price.sell_price is not None else price.price, alternative_prices))

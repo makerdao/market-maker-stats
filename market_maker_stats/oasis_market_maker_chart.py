@@ -143,7 +143,7 @@ class OasisMarketMakerChart:
         our_trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, takes, '-')
         all_trades = all_oasis_trades(self.buy_token_address, self.sell_token_address, takes)
 
-        draw_chart(start_timestamp, end_timestamp, prices, alternative_prices, states, our_trades, all_trades, self.arguments.output)
+        draw_chart(start_timestamp, end_timestamp, prices, alternative_prices, 180, states, our_trades, all_trades, self.arguments.output)
 
     def tighten_timestamps(self, timestamps: list) -> list:
         if len(timestamps) == 0:

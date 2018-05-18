@@ -75,7 +75,7 @@ class ZrxMarketMakerChart:
         order_history = get_order_history(self.arguments.order_history, start_timestamp, end_timestamp)
         order_history = prepare_order_history_for_charting(order_history)
 
-        draw_chart(start_timestamp, end_timestamp, prices, [], order_history, trades, [], self.arguments.output)
+        draw_chart(start_timestamp, end_timestamp, prices, [], 180, order_history, trades, [], self.arguments.output)
 
 
 if __name__ == '__main__':
