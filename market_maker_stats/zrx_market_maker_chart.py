@@ -26,7 +26,7 @@ from web3 import Web3, HTTPProvider
 from market_maker_stats.chart import initialize_charting, draw_chart, prepare_order_history_for_charting
 from market_maker_stats.zrx import zrx_trades, Trade
 from market_maker_stats.util import amount_in_usd_to_size, get_gdax_prices, Price, get_block_timestamp, \
-    timestamp_to_x, initialize_logging, get_order_history
+    timestamp_to_x, initialize_logging, get_order_history, get_prices
 from pymaker import Address
 from pymaker.zrx import ZrxExchange
 
@@ -44,7 +44,9 @@ class ZrxMarketMakerChart:
         parser.add_argument("--sell-token-address", help="Ethereum address of the sell token", required=True, type=str)
         parser.add_argument("--old-sell-token-address", help="Ethereum address of the old sell token", required=False, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
-        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", required=True, type=str)
+        parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", type=str)
+        parser.add_argument("--price-feed", help="Price endpoint to use as the price history source", type=str)
+        parser.add_argument("--alternative-price-feed", help="Price endpoint to use as the alternative price history source", type=str)
         parser.add_argument("--order-history", help="Order history endpoint from which to fetch our order history", type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
         parser.add_argument("-o", "--output", help="Name of the filename to save to chart to."
@@ -70,12 +72,13 @@ class ZrxMarketMakerChart:
         events = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
         trades = zrx_trades(self.infura, self.market_maker_address, self.buy_token_address, [self.sell_token_address, self.old_sell_token_address], events, '-')
 
-        prices = get_gdax_prices(self.arguments.gdax_price, start_timestamp, end_timestamp)
+        prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, None, start_timestamp, end_timestamp)
+        alternative_prices = get_prices(None, self.arguments.alternative_price_feed, None, start_timestamp, end_timestamp)
 
         order_history = get_order_history(self.arguments.order_history, start_timestamp, end_timestamp)
         order_history = prepare_order_history_for_charting(order_history)
 
-        draw_chart(start_timestamp, end_timestamp, prices, [], 180, order_history, trades, [], self.arguments.output)
+        draw_chart(start_timestamp, end_timestamp, prices, alternative_prices, 180, order_history, trades, [], self.arguments.output)
 
 
 if __name__ == '__main__':
