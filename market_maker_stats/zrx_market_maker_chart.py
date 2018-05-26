@@ -59,6 +59,7 @@ class ZrxMarketMakerChart:
         self.buy_token_address = Address(self.arguments.buy_token_address)
         self.sell_token_address = Address(self.arguments.sell_token_address)
         self.old_sell_token_address = Address(self.arguments.old_sell_token_address) if self.arguments.old_sell_token_address else None
+        self.sell_token_addresses = list(filter(lambda address: address is not None, [self.sell_token_address, self.old_sell_token_address]))
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.exchange = ZrxExchange(web3=self.web3, address=Address(self.arguments.exchange_address))
 
@@ -70,7 +71,7 @@ class ZrxMarketMakerChart:
         end_timestamp = int(time.time())
 
         events = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
-        trades = zrx_trades(self.infura, self.market_maker_address, self.buy_token_address, [self.sell_token_address, self.old_sell_token_address], events, '-')
+        trades = zrx_trades(self.infura, self.market_maker_address, self.buy_token_address, self.sell_token_addresses, events, '-')
 
         prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, None, start_timestamp, end_timestamp)
         alternative_prices = get_prices(None, self.arguments.alternative_price_feed, None, start_timestamp, end_timestamp)

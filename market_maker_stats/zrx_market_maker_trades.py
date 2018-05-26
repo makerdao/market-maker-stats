@@ -64,6 +64,7 @@ class ZrxMarketMakerTrades:
         self.buy_token_address = Address(self.arguments.buy_token_address)
         self.sell_token_address = Address(self.arguments.sell_token_address)
         self.old_sell_token_address = Address(self.arguments.old_sell_token_address) if self.arguments.old_sell_token_address else None
+        self.sell_token_addresses = list(filter(lambda address: address is not None, [self.sell_token_address, self.old_sell_token_address]))
         self.market_maker_address = Address(self.arguments.market_maker_address)
         self.exchange = ZrxExchange(web3=self.web3, address=Address(self.arguments.exchange_address))
 
@@ -72,7 +73,7 @@ class ZrxMarketMakerTrades:
 
     def main(self):
         past_fills = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
-        trades = zrx_trades(self.infura, self.market_maker_address, self.buy_token_address, [self.sell_token_address, self.old_sell_token_address], past_fills, self.arguments.exchange_name)
+        trades = zrx_trades(self.infura, self.market_maker_address, self.buy_token_address, self.sell_token_addresses, past_fills, self.arguments.exchange_name)
         trades = sort_trades(trades)
 
         if self.arguments.text:
