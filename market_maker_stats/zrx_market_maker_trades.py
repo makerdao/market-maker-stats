@@ -44,9 +44,11 @@ class ZrxMarketMakerTrades:
         parser.add_argument("--exchange-address", help="Ethereum address of the 0x contract", required=True, type=str)
         parser.add_argument("--exchange-name", help="Exchange name for including in the JSON file", required=True, type=str)
         parser.add_argument("--buy-token", help="Name of the buy token", required=True, type=str)
-        parser.add_argument("--buy-token-address", help="Ethereum address of the buy token token", required=True, type=str)
+        parser.add_argument("--buy-token-address", help="Ethereum address of the buy token", required=True, type=str)
+        parser.add_argument("--buy-token-decimals", help="Number of decimals for the buy token", type=int, default=18)
         parser.add_argument("--sell-token", help="Name of the sell token", required=True, type=str)
         parser.add_argument("--sell-token-address", help="Ethereum address of the sell token", required=True, type=str)
+        parser.add_argument("--sell-token-decimals", help="Number of decimals for the sell token", type=int, default=18)
         parser.add_argument("--old-sell-token-address", help="Ethereum address of the old sell token", required=False, type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--past-blocks", help="Number of past blocks to analyze", required=True, type=int)
@@ -73,7 +75,7 @@ class ZrxMarketMakerTrades:
 
     def main(self):
         past_fills = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
-        trades = zrx_trades(self.infura, self.market_maker_address, self.buy_token_address, self.sell_token_addresses, past_fills, self.arguments.exchange_name)
+        trades = zrx_trades(self.infura, self.market_maker_address, self.buy_token_address, self.arguments.buy_token_decimals, self.sell_token_addresses, self.arguments.sell_token_decimals, past_fills, self.arguments.exchange_name)
         trades = sort_trades(trades)
 
         if self.arguments.text:
