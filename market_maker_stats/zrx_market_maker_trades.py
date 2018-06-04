@@ -75,7 +75,7 @@ class ZrxMarketMakerTrades:
 
     def main(self):
         past_fills = self.exchange.past_fill(self.arguments.past_blocks, {'maker': self.market_maker_address.address})
-        trades = zrx_trades(self.infura, self.market_maker_address, self.buy_token_address, self.arguments.buy_token_decimals, self.sell_token_addresses, self.arguments.sell_token_decimals, past_fills, self.arguments.exchange_name)
+        trades = zrx_trades(self.infura, self.market_maker_address, self.arguments.buy_token, self.buy_token_address, self.arguments.buy_token_decimals, self.arguments.sell_token, self.sell_token_addresses, self.arguments.sell_token_decimals, past_fills, self.arguments.exchange_name)
         trades = sort_trades(trades)
 
         if self.arguments.text:

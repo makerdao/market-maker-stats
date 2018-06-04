@@ -38,21 +38,25 @@ class Trade:
         self.taker = taker
 
 
-def zrx_trades(infura: Web3, market_maker_address: Address, buy_token_address: Address, buy_token_decimals: int, sell_token_addresses: List[Address], sell_token_decimals: int, past_fills: List[LogFill], exchange_name: str) -> list:
+def zrx_trades(infura: Web3, market_maker_address: Address, buy_token: str, buy_token_address: Address, buy_token_decimals: int, sell_token: str, sell_token_addresses: List[Address], sell_token_decimals: int, past_fills: List[LogFill], exchange_name: str) -> list:
     assert(isinstance(infura, Web3))
     assert(isinstance(market_maker_address, Address))
+    assert(isinstance(buy_token, str))
     assert(isinstance(buy_token_address, Address))
     assert(isinstance(buy_token_decimals, int))
+    assert(isinstance(sell_token, str))
     assert(isinstance(sell_token_addresses, list))
     assert(isinstance(sell_token_decimals, int))
     assert(isinstance(past_fills, list))
 
+    pair = sell_token + '-' + buy_token
+
     def sell_trades() -> List[Trade]:
-        return list(map(lambda log_fill: Trade(exchange_name, log_fill.maker, 'WETH-DAI', get_event_timestamp(infura, log_fill), (log_fill.filled_buy_amount * Wad.from_number(10 ** (18 - buy_token_decimals))) / (log_fill.filled_pay_amount * Wad.from_number(10 ** (18 - sell_token_decimals))), log_fill.filled_pay_amount * Wad.from_number(10 ** (18 - sell_token_decimals)), log_fill.filled_buy_amount * Wad.from_number(10 ** (18 - buy_token_decimals)), True, log_fill.taker),
+        return list(map(lambda log_fill: Trade(exchange_name, log_fill.maker, pair, get_event_timestamp(infura, log_fill), (log_fill.filled_buy_amount * Wad.from_number(10 ** (18 - buy_token_decimals))) / (log_fill.filled_pay_amount * Wad.from_number(10 ** (18 - sell_token_decimals))), log_fill.filled_pay_amount * Wad.from_number(10 ** (18 - sell_token_decimals)), log_fill.filled_buy_amount * Wad.from_number(10 ** (18 - buy_token_decimals)), True, log_fill.taker),
                         filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token == buy_token_address and log_take.pay_token in sell_token_addresses, past_fills)))
 
     def buy_trades() -> List[Trade]:
-        return list(map(lambda log_fill: Trade(exchange_name, log_fill.maker, 'WETH-DAI', get_event_timestamp(infura, log_fill), (log_fill.filled_pay_amount * Wad.from_number(10 ** (18 - buy_token_decimals))) / (log_fill.filled_buy_amount * Wad.from_number(10 ** (18 - sell_token_decimals))), log_fill.filled_buy_amount * Wad.from_number(10 ** (18 - sell_token_decimals)), log_fill.filled_pay_amount * Wad.from_number(10 ** (18 - buy_token_decimals)), False, log_fill.taker),
+        return list(map(lambda log_fill: Trade(exchange_name, log_fill.maker, pair, get_event_timestamp(infura, log_fill), (log_fill.filled_pay_amount * Wad.from_number(10 ** (18 - buy_token_decimals))) / (log_fill.filled_buy_amount * Wad.from_number(10 ** (18 - sell_token_decimals))), log_fill.filled_buy_amount * Wad.from_number(10 ** (18 - sell_token_decimals)), log_fill.filled_pay_amount * Wad.from_number(10 ** (18 - buy_token_decimals)), False, log_fill.taker),
                         filter(lambda log_take: log_take.maker == market_maker_address and log_take.buy_token in sell_token_addresses and log_take.pay_token == buy_token_address, past_fills)))
 
     trades = sell_trades() + buy_trades()
