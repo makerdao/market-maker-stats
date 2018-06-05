@@ -184,6 +184,12 @@ def get_order_history(endpoint: Optional[str], start_timestamp: int, end_timesta
 
     result = requests.get(f"{endpoint}?min={start_timestamp}&max={end_timestamp}", timeout=15.5)
 
+    # This trick is only here so we can still generate charts for keepers which haven't started
+    # operating yet. Without it, the 500 will make the tool abort and not generate any chart.
+    if result.status_code == 500:
+        print("!!! Received 500 from the order history endpoint, assuming empty history")
+        return []
+
     if not result.ok:
         raise Exception(f"Unable to fetch order history from the endpoint: {result.status_code} {result.reason}")
 
