@@ -185,7 +185,7 @@ def get_order_history(endpoint: Optional[str], start_timestamp: int, end_timesta
     result = requests.get(f"{endpoint}?min={start_timestamp}&max={end_timestamp}", timeout=15.5)
 
     if not result.ok:
-        raise Exception(f"Unable to fetch trades from the endpoint: {result.status_code} {result.reason}")
+        raise Exception(f"Unable to fetch order history from the endpoint: {result.status_code} {result.reason}")
 
     return list(map(lambda item: OrderHistoryItem(timestamp=int(item['timestamp']),
                                                   orders=list(item['orders'])), result.json()['items']))
