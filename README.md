@@ -32,6 +32,7 @@ This project uses *Python 3.6.2*.
 In order to clone the project and install required third-party packages please execute:
 ```
 git clone https://github.com/makerdao/market-maker-stats.git
+cd market-maker-stats
 git submodule update --init --recursive
 pip3 install -r requirements.txt
 ```
