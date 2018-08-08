@@ -68,7 +68,9 @@ class OasisMarketMakerChart:
         parser.add_argument("--rpc-port", help="JSON-RPC port (default: `8545')", default=8545, type=int)
         parser.add_argument("--rpc-timeout", help="JSON-RPC timeout (in seconds, default: 60)", type=int, default=60)
         parser.add_argument("--oasis-address", help="Ethereum address of the OasisDEX contract", required=True, type=str)
+        parser.add_argument("--buy-token", help="Name of the buy token", required=True, type=str)
         parser.add_argument("--buy-token-address", help="Ethereum address of the buy token", required=True, type=str)
+        parser.add_argument("--sell-token", help="Name of the sell token", required=True, type=str)
         parser.add_argument("--sell-token-address", help="Ethereum address of the sell token", required=True,type=str)
         parser.add_argument("--market-maker-address", help="Ethereum account of the market maker to analyze", required=True, type=str)
         parser.add_argument("--gdax-price", help="GDAX product (ETH-USD, BTC-USD) to use as the price history source", type=str)
@@ -137,8 +139,9 @@ class OasisMarketMakerChart:
         alternative_prices = get_prices(None, self.arguments.alternative_price_feed, None, start_timestamp, end_timestamp)
 
         takes = list(filter(lambda log_take: log_take.timestamp >= start_timestamp, past_take))
-        our_trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, takes, '-')
-        all_trades = all_oasis_trades(self.buy_token_address, self.sell_token_address, takes)
+        pair = self.arguments.sell_token + "-" + self.arguments.buy_token
+        our_trades = our_oasis_trades(self.market_maker_address, self.buy_token_address, self.sell_token_address, takes, pair)
+        all_trades = all_oasis_trades(self.buy_token_address, self.sell_token_address, takes, pair)
 
         draw_chart(start_timestamp, end_timestamp, prices, alternative_prices, 180, states, our_trades, all_trades, self.arguments.output)
 

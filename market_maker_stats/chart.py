@@ -126,10 +126,7 @@ def draw_trades(our_trades, all_trades):
         return trade.price
 
     def to_size(trade):
-        try:
-            return amount_to_size(trade.money_symbol, trade.money)
-        except:
-            return amount_in_usd_to_size(trade.money)
+        return amount_to_size(trade)
 
     sell_trades = list(filter(lambda trade: trade.is_sell is True, our_trades))
     sell_x = list(map(to_timestamp, sell_trades))

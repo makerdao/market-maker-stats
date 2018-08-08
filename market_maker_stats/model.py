@@ -35,7 +35,5 @@ class AllTrade:
         self.timestamp = timestamp
         self.is_sell = is_sell
         self.amount = amount
-        self.amount_symbol = pair.split("-")[0]
         self.price = price
         self.money = amount * price
-        self.money_symbol = pair.split("-")[1]

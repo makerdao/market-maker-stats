@@ -60,15 +60,15 @@ def our_oasis_trades(market_maker_address: Address, buy_token_address: Address, 
     return sorted(trades, key=lambda trade: trade.timestamp)
 
 
-def all_oasis_trades(buy_token_address: Address, sell_token_address: Address, past_takes: List[LogTake]) -> List[AllTrade]:
+def all_oasis_trades(buy_token_address: Address, sell_token_address: Address, past_takes: List[LogTake], pair: str) -> List[AllTrade]:
     assert(isinstance(buy_token_address, Address))
     assert(isinstance(sell_token_address, Address))
     assert(isinstance(past_takes, list))
 
-    regular = map(lambda log_take: AllTrade('oasis', None, '-', int(log_take.timestamp), None, log_take.take_amount, log_take.give_amount / log_take.take_amount),
+    regular = map(lambda log_take: AllTrade('oasis', None, pair, int(log_take.timestamp), None, log_take.take_amount, log_take.give_amount / log_take.take_amount),
                   filter(lambda log_take: log_take.buy_token == buy_token_address and log_take.pay_token == sell_token_address, past_takes))
 
-    matched = map(lambda log_take: AllTrade('oasis', None, '-', int(log_take.timestamp), None, log_take.give_amount, log_take.take_amount / log_take.give_amount),
+    matched = map(lambda log_take: AllTrade('oasis', None, pair, int(log_take.timestamp), None, log_take.give_amount, log_take.take_amount / log_take.give_amount),
                   filter(lambda log_take: log_take.buy_token == sell_token_address and log_take.pay_token == buy_token_address, past_takes))
 
     return sorted(list(regular) + list(matched), key=lambda trade: trade.timestamp)

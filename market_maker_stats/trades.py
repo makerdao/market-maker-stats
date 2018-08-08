@@ -64,16 +64,10 @@ def text_trades(buy_token, sell_token, trades, output: Optional[str], include_ta
     assert(isinstance(include_taker, bool))
 
     def amount_symbol(trade):
-        try:
-            return trade.amount_symbol
-        except:
-            return sell_token
+        return trade.pair.split("-")[0]
 
     def money_symbol(trade):
-        try:
-            return trade.money_symbol
-        except:
-            return buy_token
+        return trade.pair.split("-")[1]
 
     def table_row(trade) -> list:
         return [format_timestamp(trade.timestamp),
