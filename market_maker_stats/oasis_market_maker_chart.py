@@ -23,12 +23,9 @@ from typing import List, Optional
 
 from web3 import Web3, HTTPProvider
 
-from market_maker_stats.chart import initialize_charting, prepare_prices_for_charting, draw_prices, draw_trades, \
-    draw_chart
-from market_maker_stats.model import AllTrade
-from market_maker_stats.oasis import our_oasis_trades, Trade, all_oasis_trades
-from market_maker_stats.util import amount_in_usd_to_size, get_block_timestamp, \
-    timestamp_to_x, initialize_logging, get_prices, Price
+from market_maker_stats.chart import initialize_charting, draw_chart
+from market_maker_stats.oasis import our_oasis_trades, all_oasis_trades
+from market_maker_stats.util import get_block_timestamp, initialize_logging, get_prices
 from pymaker import Address
 from pymaker.numeric import Wad
 from pymaker.oasis import SimpleMarket, Order, LogMake, LogTake, LogKill
