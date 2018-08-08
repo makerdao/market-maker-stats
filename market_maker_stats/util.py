@@ -115,21 +115,21 @@ def amount_to_size(trade: AllTrade):
     ETH_IN_USD = Wad.from_number(500)
     MKR_IN_USD = Wad.from_number(500)
 
-    if trade.pair.endswith("-DAI"):
-        amount_in_usd = trade.amount * trade.price
-    elif trade.pair.startswith("DAI-"):
+    if trade.pair.startswith("DAI-"):
         amount_in_usd = trade.amount
-    elif trade.pair.endswith("-USDT") or trade.pair.endswith("-USD") or trade.pair.endswith("-TUSD"):
+    elif trade.pair.endswith("-DAI"):
         amount_in_usd = trade.amount * trade.price
     elif trade.pair.startswith("USDT-") or trade.pair.startswith("USD-") or trade.pair.startswith("TUSD-"):
         amount_in_usd = trade.amount
-    elif trade.pair.startswith("ETH-"):
+    elif trade.pair.endswith("-USDT") or trade.pair.endswith("-USD") or trade.pair.endswith("-TUSD"):
+        amount_in_usd = trade.amount * trade.price
+    elif trade.pair.startswith("ETH-") or trade.pair.startswith("WETH-"):
         amount_in_usd = trade.amount * ETH_IN_USD
-    elif trade.pair.startswith("-ETH"):
+    elif trade.pair.endswith("-ETH") or trade.pair.endswith("-WETH"):
         amount_in_usd = trade.amount * trade.price * ETH_IN_USD
     elif trade.pair.startswith("MKR-"):
         amount_in_usd = trade.amount * MKR_IN_USD
-    elif trade.pair.startswith("-MKR"):
+    elif trade.pair.endswith("-MKR"):
         amount_in_usd = trade.amount * trade.price * MKR_IN_USD
     else:
         raise Exception("Don't know how to calculate amount in USD for chart size")
