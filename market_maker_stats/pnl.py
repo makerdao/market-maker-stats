@@ -135,6 +135,12 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
         pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(day_trades)
         pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
 
+        # 'pnl_profits' will contain NaN for these trades where missing price information
+        # made profit calculation impossible. we count number of these in `missing_profits`
+        pnl_profits_len_before = len(pnl_profits)
+        pnl_profits = pnl_profits[~np.isnan(pnl_profits)]
+        missing_profits = len(pnl_profits) != pnl_profits_len_before
+
         day_volume = sum_wads(map(lambda trade: trade.money, day_trades))
         day_bought = sum_wads(map(lambda trade: trade.money, filter(lambda trade: trade.is_sell, day_trades)))
         day_sold = sum_wads(map(lambda trade: trade.money, filter(lambda trade: not trade.is_sell, day_trades)))
@@ -152,14 +158,15 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
                      amount_format.format(float(day_sold)),
                      amount_format.format(float(day_net)),
                      amount_format.format(float(total_net)),
-                     amount_format.format(day_profit)])
+                     amount_format.format(day_profit),
+                     "*" if missing_profits else ""])
 
     table = Texttable(max_width=250)
     table.set_deco(Texttable.HEADER)
-    table.set_cols_dtype(['t', 't', 't', 't', 't', 't', 't', 't'])
-    table.set_cols_align(['l', 'r', 'r', 'r', 'r', 'r', 'r', 'r'])
-    table.set_cols_width([11, 9, 18, 22, 18, 26, 20, 25])
-    table.add_rows([["Day", "# trades", "Volume", "Bought", "Sold", "Net bought", "Cumulative net bought", "Profit"]] + data)
+    table.set_cols_dtype(['t', 't', 't', 't', 't', 't', 't', 't', 't'])
+    table.set_cols_align(['l', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'l'])
+    table.set_cols_width([11, 9, 18, 22, 18, 26, 20, 25, 10])
+    table.add_rows([["Day", "# trades", "Volume", "Bought", "Sold", "Net bought", "Cumulative net bought", "Profit", "Remarks"]] + data)
 
     result = f"PnL report for {sell_token}/{buy_token} market-making:" + "\n" + \
              f"" + "\n" + \
@@ -167,6 +174,9 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
              f"" + "\n" + \
              f"The first and the last day of the report may not contain all trades." + "\n" + \
              f"The last window of {vwap_minutes} minutes of trades is excluded from profit calculation." + "\n" + \
+             f"" + "\n" + \
+             f"Remarks:" + "\n" + \
+             f"*) Profit calculation for that day incomplete due to missing price information." + "\n" + \
              f"" + "\n" + \
              f"Total number of trades: {len(trades)}" + "\n" + \
              f"Total volume: " + amount_format.format(float(total_volume)) + "\n" + \
@@ -188,6 +198,7 @@ def pnl_chart(start_timestamp: int, end_timestamp: int, prices: List[Price], tra
 
     pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(trades)
     pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
+    pnl_profits = pnl_profits[~np.isnan(pnl_profits)]
 
     fig, ax = plt.subplots()
     ax.set_xlim(left=timestamp_to_x(start_timestamp), right=timestamp_to_x(end_timestamp))
