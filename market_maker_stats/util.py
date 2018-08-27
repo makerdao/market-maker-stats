@@ -165,6 +165,10 @@ def get_trades(endpoint: Optional[str], start_timestamp: int, end_timestamp: int
     if endpoint is not None:
         trades = trade_client.get_trades(endpoint, start_timestamp, end_timestamp, 60.5)
 
+        # remove dust trades
+        # we consider trades < 1000 wei dust trades
+        trades = list(filter(lambda item: item.amount >= Wad(1000), trades))
+
         return list(map(lambda item: AllTrade(exchange=item.exchange,
                                               maker=item.maker,
                                               pair=item.pair,
