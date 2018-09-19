@@ -132,14 +132,21 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
     for day, day_trades in groupby(trades, lambda trade: get_day(trade.timestamp)):
         day_trades = list(day_trades)
 
-        pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(day_trades)
-        pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
+        if vwaps_start != -1:
+            pnl_trades, pnl_prices, pnl_timestamps = prepare_trades_for_pnl(day_trades)
+            pnl_profits = calculate_pnl(pnl_trades, pnl_prices, pnl_timestamps, vwaps, vwaps_start)
 
-        # 'pnl_profits' will contain NaN for these trades where missing price information
-        # made profit calculation impossible. we count number of these in `missing_profits`
-        pnl_profits_len_before = len(pnl_profits)
-        pnl_profits = pnl_profits[~np.isnan(pnl_profits)]
-        missing_profits = len(pnl_profits) != pnl_profits_len_before
+            # 'pnl_profits' will contain NaN for these trades where missing price information
+            # made profit calculation impossible. we count number of these in `missing_profits`
+            pnl_profits_len_before = len(pnl_profits)
+            pnl_profits = pnl_profits[~np.isnan(pnl_profits)]
+            missing_profits = len(pnl_profits) != pnl_profits_len_before
+            calculated_profits = True
+
+        else:
+            pnl_profits = np.array([])
+            missing_profits = False
+            calculated_profits = False
 
         day_volume = sum_wads(map(lambda trade: trade.money, day_trades))
         day_bought = sum_wads(map(lambda trade: trade.money, filter(lambda trade: trade.is_sell, day_trades)))
@@ -158,7 +165,7 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
                      amount_format.format(float(day_sold)),
                      amount_format.format(float(day_net)),
                      amount_format.format(float(total_net)),
-                     amount_format.format(day_profit),
+                     amount_format.format(day_profit) if calculated_profits else "n/a",
                      "*" if missing_profits else ""])
 
     table = Texttable(max_width=250)
@@ -172,15 +179,25 @@ def pnl_text(trades: list, vwaps: list, vwaps_start: int, buy_token: str, sell_t
              f"" + "\n" + \
              table.draw() + "\n" + \
              f"" + "\n" + \
-             f"The first and the last day of the report may not contain all trades." + "\n" + \
-             f"The last window of {vwap_minutes} minutes of trades is excluded from profit calculation." + "\n" + \
-             f"" + "\n" + \
-             f"Remarks:" + "\n" + \
-             f"*) Profit calculation for that day incomplete due to missing price information." + "\n" + \
+             f"The first and the last day of the report may not contain all trades." + "\n"
+
+    if vwaps_start != -1:
+        result = result + \
+                 f"The last window of {vwap_minutes} minutes of trades is excluded from profit calculation." + "\n" + \
+                 f"" + "\n" + \
+                 f"Remarks:" + "\n" + \
+                 f"*) Profit calculation for that day incomplete due to missing price information." + "\n"
+
+    result = result + \
              f"" + "\n" + \
              f"Total number of trades: {len(trades)}" + "\n" + \
-             f"Total volume: " + amount_format.format(float(total_volume)) + "\n" + \
-             f"Total profit: " + amount_format.format(total_profit) + "\n" + \
+             f"Total volume: " + amount_format.format(float(total_volume)) + "\n"
+
+    if vwaps_start != -1:
+        result = result + \
+               f"Total profit: " + amount_format.format(total_profit) + "\n"
+
+    result = result + \
              f"" + "\n" + \
              f"Generated at: {datetime.datetime.now(tz=pytz.UTC).strftime('%Y.%m.%d %H:%M:%S %Z')}"
 

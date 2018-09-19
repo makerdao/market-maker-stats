@@ -55,9 +55,15 @@ class MarketMakerPnl:
         end_timestamp = int(time.time())
 
         trades = sort_trades_for_pnl(get_trades(self.arguments.our_trades, start_timestamp, end_timestamp))
-        prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, self.arguments.price_history_file, start_timestamp, end_timestamp)
-        vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
-        vwaps_start = prices[0].timestamp
+        if self.arguments.gdax_price is not None or self.arguments.price_feed is not None or self.arguments.price_history_file is not None:
+            prices = get_prices(self.arguments.gdax_price, self.arguments.price_feed, self.arguments.price_history_file, start_timestamp, end_timestamp)
+            vwaps = get_approx_vwaps(prices, self.arguments.vwap_minutes)
+            vwaps_start = prices[0].timestamp
+
+        else:
+            prices = []
+            vwaps = []
+            vwaps_start = -1
 
         if self.arguments.text:
             pnl_text(trades, vwaps, vwaps_start, self.arguments.buy_token, self.arguments.sell_token, self.arguments.vwap_minutes, self.arguments.output)
