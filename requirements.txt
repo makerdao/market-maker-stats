@@ -9,3 +9,4 @@ numpy == 1.14.0
 matplotlib == 2.1.0
 texttable == 1.2.1
 python-dateutil == 2.6.1
+filelock == 3.0.0
