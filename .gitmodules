@@ -4,6 +4,3 @@
 [submodule "lib/pyexchange"]
 	path = lib/pyexchange
 	url = https://github.com/makerdao/pyexchange.git
-[submodule "lib/trade-client"]
-	path = lib/trade-client
-	url = git@github.com:LiquidityProviders/trade-client.git

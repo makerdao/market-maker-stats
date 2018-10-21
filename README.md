@@ -3,24 +3,16 @@
 [![Build Status](https://travis-ci.org/makerdao/market-maker-stats.svg?branch=master)](https://travis-ci.org/makerdao/market-maker-stats)
 [![codecov](https://codecov.io/gh/makerdao/market-maker-stats/branch/master/graph/badge.svg)](https://codecov.io/gh/makerdao/market-maker-stats)
 
-A set of tools for visualizing market making data.
-
-The following tools are built according to the new architecture, and they retrieve
-trade history from HTTP endpoints exposed by `trade-service` (<https://github.com/LiquidityProviders/trade-service>):
-* `market-maker-chart` (trade chart tool),
-* `market-maker-pnl` (profitability calculation tool),
-* `market-maker-trades` (trade history dumping tool).
-
-The following tools still use the old approach i.e. they interact with the exchanges directly:
+A set of tools for visualizing market making data:
 * `oasis-market-maker-chart` (trade chart tool for OasisDEX),
 * `oasis-market-maker-pnl` (profitability calculation tool for OasisDEX),
 * `oasis-market-maker-trades` (trade history dumping tool for OasisDEX),
 * `etherdelta-market-maker-chart` (trade chart tool for EtherDelta),
 * `etherdelta-market-maker-pnl` (profitability calculation tool for EtherDelta),
 * `etherdelta-market-maker-trades` (trade history dumping tool for EtherDelta),
-* `0x-market-maker-chart` (trade chart tool for 0x exchanges),
-* `0x-market-maker-pnl` (profitability calculation tool for 0x exchanges),
-* `0x-market-maker-trades` (trade history dumping tool for 0x exchanges).
+* `0x-market-maker-chart` (trade chart tool for 0x v1 exchanges),
+* `0x-market-maker-pnl` (profitability calculation tool for 0x v1 exchanges),
+* `0x-market-maker-trades` (trade history dumping tool for 0x v1 exchanges).
 
 <https://chat.makerdao.com/channel/keeper>
 
