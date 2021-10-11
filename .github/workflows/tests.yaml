@@ -1,0 +1,27 @@
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.6'
+
+      - name: install python packages
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install python3-pip jshon jq virtualenv pkg-config openssl libssl-dev autoconf libtool libsecp256k1-dev
+          pip install virtualenv --upgrade
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: execute tests
+        run: ./test.sh && codecov
